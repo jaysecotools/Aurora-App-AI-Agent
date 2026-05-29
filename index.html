@@ -9,8 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Aurora Tracker">
-    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
         :root { --aurora-green: #00ffaa; --aurora-blue: #00d2ff; --aurora-purple: #aa66ff; --bg-dark: #0a1428; --bg-darker: #030617; --card-bg: rgba(12, 22, 40, 0.85); --bom-orange: #ff8c42; --noaa-blue: #3b82f6; --glass-border: rgba(255, 255, 255, 0.12); }
@@ -102,10 +100,30 @@
 <div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.0 • Agent v1.0</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use location</span></div></div>
 
 <script type="module">
-    // Import agent modules (ES modules now working)
-    import { SpaceWeatherAgent } from '/agent/spaceWeatherAgent.js';
-    import { NotificationManager } from '/notifications/manager.js';
-    import { DataCache } from '/services/dataCache.js';
+    // Dynamic import to handle relative paths correctly
+    let SpaceWeatherAgent, NotificationManager, DataCache;
+    
+    // Load modules dynamically with error handling
+    try {
+        const agentModule = await import('./agent/spaceWeatherAgent.js');
+        const notifModule = await import('./notifications/manager.js');
+        const cacheModule = await import('./services/dataCache.js');
+        
+        SpaceWeatherAgent = agentModule.SpaceWeatherAgent;
+        NotificationManager = notifModule.NotificationManager;
+        DataCache = cacheModule.DataCache;
+    } catch (error) {
+        console.error('Failed to load modules:', error);
+        // Fallback to inline definitions if module loading fails
+        // This ensures the app still works even if module loading has issues
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = './fallback.js';
+        document.head.appendChild(fallbackScript);
+        await new Promise(resolve => fallbackScript.onload = resolve);
+        SpaceWeatherAgent = window.SpaceWeatherAgent;
+        NotificationManager = window.NotificationManager;
+        DataCache = window.DataCache;
+    }
     
     let auroraAgent = null;
     let notificationManager = null;
@@ -147,8 +165,6 @@
     let currentInterval = '3h';
     let refreshInterval = null;
     
-    // NO DUPLICATE SCORING FUNCTION - agent is the ONLY source
-    
     function getMoonPhase(date) {
         const knownNew = new Date(2024, 0, 11);
         const lunarCycle = 29.53058867;
@@ -175,8 +191,6 @@
         let coverage = percent < 25 ? 'Clear' : (percent < 55 ? 'Partly cloudy' : (percent < 80 ? 'Cloudy' : 'Overcast'));
         return { coverage: `${coverage} (${Math.round(percent)}%)`, percent };
     }
-    
-    // REMOVED calculateViewingScore - AGENT IS THE ONLY SOURCE
     
     async function fetchNOAAData() {
         const start = Date.now();
@@ -217,7 +231,6 @@
             dataStatusSpan.innerText = '✅ NOAA DATA';
             dataStatusSpan.className = 'data-status status-noaa';
             
-            // Run agent evaluation (only on data fetch, not on every UI update cycle)
             await evaluateWithAgent();
             
             dashboard.style.display = 'block';
@@ -248,14 +261,12 @@
         }
     }
     
-    // AGENT EVALUATION - runs only on data fetch (not on UI cycles)
     async function evaluateWithAgent() {
         if (!currentData || !auroraAgent) return;
         
         const moon = getMoonPhase(new Date());
         const cloud = estimateCloudCover();
         
-        // Agent is the SINGLE source of truth for all decisions
         const agentResult = auroraAgent.evaluate(currentData, forecastData, {
             moonBrightness: moon.brightness,
             cloudPercent: cloud.percent,
@@ -265,13 +276,10 @@
         
         lastAgentResult = agentResult;
         
-        // Update ALL UI elements from agent result (no duplicate calculations)
         updateUIFromAgent(agentResult, moon, cloud);
         
-        // Send notification if needed (only after user has granted permission via button)
         if (agentResult.shouldNotify && notificationManager && notificationManager.permissionGranted) {
             const notified = notificationManager.sendAuroraAlert(agentResult, selectedLocation, () => {
-                // Mark notification sent in agent state
                 auroraAgent.markNotificationSent();
             });
             if (notified) {
@@ -281,15 +289,12 @@
         }
     }
     
-    // Single UI update function - reads ONLY from agent result
     function updateUIFromAgent(agentResult, moon, cloud) {
         const kp = currentData.kp;
         const bz = currentData.solar.bz;
         
-        // Use agent's score (THE ONE TRUE SCORE)
         viewingScoreSpan.innerText = agentResult.score + '/100';
         
-        // Use agent's summary and recommendations
         agentSummarySpan.innerHTML = `🤖 ${agentResult.summary}`;
         
         if (agentResult.recommendations && agentResult.recommendations.length) {
@@ -300,7 +305,6 @@
             agentRecommendationsDiv.innerHTML = '<div>No active recommendations. Keep monitoring.</div>';
         }
         
-        // Use agent's alerts with severity-based styling
         if (agentResult.alerts && agentResult.alerts.length) {
             alertsDiv.innerHTML = agentResult.alerts.map(alert => {
                 let severityClass = '';
@@ -316,13 +320,11 @@
             alertsDiv.innerHTML = '✅ No active alerts from agent';
         }
         
-        // Update viewing advice based on agent's score
         if (agentResult.score >= 70) viewingAdviceSpan.innerText = '🔥 Excellent! Go outside!';
         else if (agentResult.score >= 50) viewingAdviceSpan.innerText = '👍 Good chance - find dark skies';
         else if (agentResult.score >= 30) viewingAdviceSpan.innerText = '⚠️ Marginal - check horizon';
         else viewingAdviceSpan.innerText = '❌ Poor - try another night';
         
-        // Standard UI updates (display data, not decisions)
         kpSpan.innerText = kp.toFixed(1);
         kpDesc.innerText = kp >= 6 ? '⚡ Storm - excellent chance!' : (kp >= 4 ? '✨ Active - keep watching' : '🌙 Quiet - low probability');
         const percentPos = (kp / 9) * 100;
@@ -332,7 +334,6 @@
         moonDetailSpan.innerText = moon.desc;
         cloudSpan.innerText = cloud.coverage;
         
-        // Location-based chance (still needed for regional display)
         let baseChance = Math.min(90, Math.max(0, (kp - 3) * 22));
         if (selectedLocation === 'tasmania') baseChance = Math.min(95, baseChance * 1.35);
         else if (selectedLocation === 'victoria') baseChance = Math.min(88, baseChance * 1.1);
@@ -376,7 +377,6 @@
         const tasDropdown = document.getElementById('tasmaniaDropdown'); 
         if (loc === 'tasmania') tasDropdown.style.display = 'block'; 
         else tasDropdown.style.display = 'none'; 
-        // Re-evaluate with new location
         if (currentData) evaluateWithAgent();
     }
     
@@ -397,13 +397,11 @@
         } 
     }
     
-    // This MUST be called from user gesture (button click)
     async function enableNotifications() {
         if (notificationManager) {
             const granted = await notificationManager.requestPermission();
             if (granted) {
                 showAlert('success', '🔔 Notifications enabled! You will receive aurora alerts.');
-                // Test notification
                 notificationManager.sendNotification('Aurora Tracker', 'Notifications are now active!');
             } else {
                 showAlert('warning', 'Notification permission denied. Check browser settings.');
@@ -424,24 +422,19 @@
     
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
-        // Note: This only runs while tab is open
-        // For true background agent, would need Service Worker periodic sync
         refreshInterval = setInterval(() => {
             console.log('🤖 Agent auto-refresh triggered');
             fetchData();
         }, 10 * 60 * 1000);
     }
     
-    // Initialize everything
     async function init() {
-        // Initialize modules
         auroraAgent = new SpaceWeatherAgent();
-        notificationManager = new NotificationManager(); // Does NOT request permission
+        notificationManager = new NotificationManager();
         dataCache = new DataCache();
         
         agentStatusSpan.innerText = '🤖 Agent: Active';
         
-        // Load cached data if available
         const cached = dataCache.getCachedAuroraData();
         if (cached.current && cached.forecast) {
             currentData = cached.current;
@@ -462,7 +455,7 @@
         }, 1000);
     }
     
-    // Set up event listeners (these remain the same as before)
+    // Set up event listeners
     document.getElementById('simpleViewBtn').onclick = () => { document.body.classList.add('simple-view'); document.getElementById('simpleViewBtn').classList.add('active'); document.getElementById('detailedViewBtn').classList.remove('active'); };
     document.getElementById('detailedViewBtn').onclick = () => { document.body.classList.remove('simple-view'); document.getElementById('detailedViewBtn').classList.add('active'); document.getElementById('simpleViewBtn').classList.remove('active'); };
     document.getElementById('interval3hBtn').onclick = () => { currentInterval = '3h'; document.getElementById('interval3hBtn').classList.add('active'); document.getElementById('intervalDailyBtn').classList.remove('active'); updateForecastChart(); };
@@ -470,7 +463,7 @@
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => selectLocation(t.dataset.loc)));
     document.getElementById('fetchBtn').onclick = () => fetchData();
     document.getElementById('locationBtn').onclick = () => getLocation();
-    document.getElementById('notifyBtn').onclick = () => enableNotifications(); // User gesture!
+    document.getElementById('notifyBtn').onclick = () => enableNotifications();
     document.getElementById('useBOMToggle').onchange = () => fetchData();
     document.getElementById('tasmaniaDropdownHeader').onclick = () => { document.getElementById('tasmaniaAdvantageContent').classList.toggle('open'); };
     
@@ -487,15 +480,14 @@
         starsDiv.appendChild(star); 
     }
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW registered', reg.scope))
-            .catch(err => console.warn('SW failed', err));
-    });
-}
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registered', reg.scope))
+                .catch(err => console.warn('SW failed', err));
+        });
+    }
     
-    // Start the app
     init();
 </script>
 </body>
