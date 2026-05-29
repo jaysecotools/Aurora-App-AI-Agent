@@ -1,31 +1,30 @@
-// sw.js - Service Worker for Aurora Tracker PWA
-const CACHE_NAME = 'aurora-tracker-v3'; // Changed version to force update
+// sw.js - Simple PWA Service Worker (NO aggressive caching)
+const CACHE_NAME = 'aurora-tracker-light-v1';
+
+// Only cache the absolute minimum needed for offline install
 const urlsToCache = [
-  './',
-  './index.html',
   './manifest.json'
-  // Removed icon paths since they don't exist yet - add them when you have icons
+  // Intentionally NOT caching index.html or any JS files
 ];
 
-// Install event - cache core assets
+// Install - minimal caching
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
+  console.log('[SW] Installing light version...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[SW] Caching app assets');
+        // Try to cache manifest, but don't fail if it doesn't work
         return cache.addAll(urlsToCache).catch(err => {
-          console.warn('[SW] Cache addAll failed:', err);
-          // Continue anyway - don't let cache failure break installation
+          console.log('[SW] Cache warning:', err);
         });
       })
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
+// Activate - clean old caches and take control immediately
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
+  console.log('[SW] Activating light version...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -36,81 +35,47 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch event - MODIFIED to properly handle module files
+// Fetch - DO NOT CACHE HTML or JS - always go to network
 self.addEventListener('fetch', event => {
   const url = event.request.url;
   
-  // DON'T intercept NOAA API calls - let them go straight to network
-  if (url.includes('services.swpc.noaa.gov')) {
+  // Don't cache anything - just let everything go to network
+  // This ensures you always get the latest version on refresh
+  
+  // For HTML pages, NEVER cache them
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Only fallback to cache if offline AND it's the main page
+        return caches.match('./index.html');
+      })
+    );
     return;
   }
   
-  // DON'T intercept your module JS files - let them load fresh
-  if (url.includes('/agent/') || url.includes('/notifications/') || url.includes('/services/')) {
-    return;
-  }
-  
-  // For everything else, try cache then network
+  // For everything else (images, etc.), try network first, then cache as fallback only
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        if (cachedResponse) {
-          // Return cached version, update in background
-          fetch(event.request)
-            .then(networkResponse => {
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, networkResponse.clone());
-                });
-              }
-            })
-            .catch(() => {});
-          return cachedResponse;
-        }
-        
-        return fetch(event.request)
-          .then(response => {
-            // Cache valid responses for HTML, CSS, etc.
-            if (response && response.status === 200 && 
-                (response.headers.get('content-type')?.includes('text/html') ||
-                 response.headers.get('content-type')?.includes('text/css'))) {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            if (event.request.headers.get('accept')?.includes('text/html')) {
-              return caches.match('./index.html');
-            }
-          });
+    fetch(event.request)
+      .catch(() => {
+        // Only use cache if offline
+        return caches.match(event.request);
       })
   );
 });
 
-// Handle update messages
+// Simple message handler
 self.addEventListener('message', event => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
 });
 
-// Background sync for data refresh
-self.addEventListener('sync', event => {
-  if (event.tag === 'refresh-aurora-data') {
-    event.waitUntil(refreshAuroraData());
-  }
-});
-
-async function refreshAuroraData() {
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => {
-    client.postMessage({ type: 'REFRESH_DATA' });
-  });
-}
+// Log that service worker is active
+console.log('[SW] Light service worker active - no aggressive caching');
