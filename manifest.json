@@ -1,77 +1,26 @@
 {
   "name": "Aurora Tracker - Australian Space Weather",
   "short_name": "Aurora Tracker",
-  "description": "Real-time aurora australis tracking for Australia using BOM and NOAA data",
-  "start_url": ".",
+  "description": "Real-time aurora australis tracking for Australia using NOAA data",
+  "start_url": "./index.html",
   "display": "standalone",
   "theme_color": "#0a1428",
   "background_color": "#030617",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "./",
   "categories": ["weather", "news", "education"],
   "icons": [
     {
-      "src": "icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-192x192.png",
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-512x512.png",
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/maskable-icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshots/mobile-view.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "platform": "android",
-      "label": "Main dashboard view"
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -79,15 +28,13 @@
       "name": "Refresh Data",
       "short_name": "Refresh",
       "description": "Get latest aurora data",
-      "url": "/?refresh=true",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+      "url": "./index.html?refresh=true"
     },
     {
       "name": "Tasmania View",
       "short_name": "TAS",
       "description": "Best viewing location",
-      "url": "/?region=tasmania",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+      "url": "./index.html?region=tasmania"
     }
   ],
   "related_applications": [],
