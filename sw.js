@@ -1,18 +1,10 @@
 // sw.js - Service Worker for Aurora Tracker PWA
-const CACHE_NAME = 'aurora-tracker-v2';
+const CACHE_NAME = 'aurora-tracker-v3'; // Changed version to force update
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-72x72.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png',
-  './icons/maskable-icon.png'
+  './manifest.json'
+  // Removed icon paths since they don't exist yet - add them when you have icons
 ];
 
 // Install event - cache core assets
@@ -22,7 +14,10 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('[SW] Caching app assets');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('[SW] Cache addAll failed:', err);
+          // Continue anyway - don't let cache failure break installation
+        });
       })
       .then(() => self.skipWaiting())
   );
@@ -45,36 +40,44 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - serve from cache then network (stale-while-revalidate)
+// Fetch event - MODIFIED to properly handle module files
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests and external APIs
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('services.swpc.noaa.gov') ||
-      event.request.url.includes('bom.gov.au')) {
+  const url = event.request.url;
+  
+  // DON'T intercept NOAA API calls - let them go straight to network
+  if (url.includes('services.swpc.noaa.gov')) {
     return;
   }
   
+  // DON'T intercept your module JS files - let them load fresh
+  if (url.includes('/agent/') || url.includes('/notifications/') || url.includes('/services/')) {
+    return;
+  }
+  
+  // For everything else, try cache then network
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
-        // Return cached version if available
         if (cachedResponse) {
-          // Fetch in background to update cache
+          // Return cached version, update in background
           fetch(event.request)
             .then(networkResponse => {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
-              });
+              if (networkResponse && networkResponse.status === 200) {
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, networkResponse.clone());
+                });
+              }
             })
             .catch(() => {});
           return cachedResponse;
         }
         
-        // Otherwise fetch from network
         return fetch(event.request)
           .then(response => {
-            // Cache valid responses
-            if (response && response.status === 200 && response.type === 'basic') {
+            // Cache valid responses for HTML, CSS, etc.
+            if (response && response.status === 200 && 
+                (response.headers.get('content-type')?.includes('text/html') ||
+                 response.headers.get('content-type')?.includes('text/css'))) {
               const responseToCache = response.clone();
               caches.open(CACHE_NAME).then(cache => {
                 cache.put(event.request, responseToCache);
@@ -83,8 +86,7 @@ self.addEventListener('fetch', event => {
             return response;
           })
           .catch(() => {
-            // Offline fallback for HTML pages
-            if (event.request.headers.get('accept').includes('text/html')) {
+            if (event.request.headers.get('accept')?.includes('text/html')) {
               return caches.match('./index.html');
             }
           });
@@ -99,7 +101,7 @@ self.addEventListener('message', event => {
   }
 });
 
-// Background sync for data refresh (optional)
+// Background sync for data refresh
 self.addEventListener('sync', event => {
   if (event.tag === 'refresh-aurora-data') {
     event.waitUntil(refreshAuroraData());
