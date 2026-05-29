@@ -6,7 +6,7 @@
     <title>Aurora Tracker • AI Agent • Australian Space Weather</title> 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a1428">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Aurora Tracker">
     <style>
@@ -92,13 +92,6 @@
 <div class="data-status status-loading" id="dataStatus">🔄 LOADING</div>
 <div class="update-badge" id="updateBadge">🔄 New version ready! Tap to update</div>
 
-<!-- Initial loading overlay - will be removed when app is ready -->
-<div id="initOverlay" class="init-loading">
-    <div class="init-spinner"></div>
-    <div id="initMessage">Loading Aurora Tracker...</div>
-    <div style="font-size: 0.7rem; margin-top: 1rem; opacity: 0.7;">Initializing modules...</div>
-</div>
-
 <div class="container">
     <header><h1>Aurora Tracker • Australia <span class="agent-badge">🤖 AI Agent Active</span></h1><p class="subtitle">Real-time southern lights • AI-powered monitoring</p></header>
     <div class="view-toggle"><button class="view-btn active" id="simpleViewBtn">🌙 Simple View</button><button class="view-btn" id="detailedViewBtn">🔭 Detailed View</button></div>
@@ -109,514 +102,549 @@
 <div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.0 • Agent v1.0</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use location</span></div></div>
 
 <script>
-    // CRITICAL FIX: Use inline script for module loading to avoid SW caching issues
-    (async function() {
-        const initMessage = document.getElementById('initMessage');
-        const initOverlay = document.getElementById('initOverlay');
-        const dataStatusSpan = document.getElementById('dataStatus');
-        
-        // Helper function to update loading message
-        function setInitMessage(msg) {
-            if (initMessage) initMessage.textContent = msg;
-            console.log('[Init]', msg);
-        }
-        
-        // Force clear service worker cache on hard reload
-        if (performance.navigation && performance.navigation.type === 1) {
-            console.log('Hard reload detected - clearing caches');
-            if ('caches' in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map(key => caches.delete(key)));
-                console.log('Caches cleared on hard reload');
-            }
-        }
-        
-        setInitMessage('Loading core modules...');
-        
-        // Dynamic import with cache busting and timeout
-        async function loadModule(url, retries = 3) {
-            const cacheBuster = `?t=${Date.now()}`;
-            const fullUrl = url + cacheBuster;
-            
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const module = await import(fullUrl);
-                    return module;
-                } catch (error) {
-                    console.warn(`Failed to load ${url} (attempt ${i + 1}/${retries}):`, error);
-                    if (i === retries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                }
-            }
-        }
-        
-        try {
-            // Load modules with timeout race
-            const loadPromise = Promise.all([
-                loadModule('./agent/spaceWeatherAgent.js'),
-                loadModule('./notifications/manager.js'),
-                loadModule('./services/dataCache.js')
-            ]);
-            
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Module loading timeout')), 15000)
-            );
-            
-            setInitMessage('Initializing agent components...');
-            const [agentModule, notifModule, cacheModule] = await Promise.race([loadPromise, timeoutPromise]);
-            
-            const { SpaceWeatherAgent } = agentModule;
-            const { NotificationManager } = notifModule;
-            const { DataCache } = cacheModule;
-            
-            setInitMessage('Starting Aurora Tracker...');
-            
-            // Store globally for access
-            window.SpaceWeatherAgent = SpaceWeatherAgent;
-            window.NotificationManager = NotificationManager;
-            window.DataCache = DataCache;
-            window.modulesLoaded = true;
-            
-            // Remove overlay
-            if (initOverlay) {
-                initOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    initOverlay.style.display = 'none';
-                }, 500);
-            }
-            
-            // Update status
-            if (dataStatusSpan) {
-                dataStatusSpan.innerHTML = '✅ READY';
-                dataStatusSpan.className = 'data-status';
-            }
-            
-            // Dispatch event that modules are ready
-            window.dispatchEvent(new CustomEvent('auroraModulesLoaded'));
-            
-        } catch (error) {
-            console.error('Failed to initialize app:', error);
-            setInitMessage('Failed to load. Please refresh.');
-            if (initOverlay) {
-                initOverlay.style.background = 'rgba(255,50,50,0.9)';
-            }
-            if (dataStatusSpan) {
-                dataStatusSpan.innerHTML = '⚠️ LOAD FAILED';
-                dataStatusSpan.className = 'data-status';
-            }
-        }
-    })();
-</script>
+// ALL CODE IS NOW SELF-CONTAINED - NO EXTERNAL MODULE IMPORTS NEEDED!
+// This fixes the page reload issue completely.
 
-<script type="module">
-    // Main app code - waits for modules to be loaded by the inline script
-    let SpaceWeatherAgent, NotificationManager, DataCache;
-    let auroraAgent = null;
-    let notificationManager = null;
-    let dataCache = null;
-    let lastAgentResult = null;
-    
-    // DOM Elements
-    const dashboard = document.getElementById('dashboardContent');
-    const loadingDiv = document.getElementById('loading');
-    const dataStatusSpan = document.getElementById('dataStatus');
-    const kpSpan = document.getElementById('kpValue');
-    const kpDesc = document.getElementById('kpDescription');
-    const kpIndicator = document.getElementById('kpIndicator');
-    const visibilitySpan = document.getElementById('visibilityChance');
-    const stormSpan = document.getElementById('stormLevel');
-    const moonPhaseSpan = document.getElementById('moonPhase');
-    const moonDetailSpan = document.getElementById('moonDetail');
-    const cloudSpan = document.getElementById('cloudCover');
-    const viewingScoreSpan = document.getElementById('viewingScore');
-    const viewingAdviceSpan = document.getElementById('viewingAdvice');
-    const speedSpan = document.getElementById('speedValue');
-    const bzSpan = document.getElementById('bzValue');
-    const locationChanceSpan = document.getElementById('locationChance');
-    const alertsDiv = document.getElementById('alertsList');
-    const peakTodaySpan = document.getElementById('peakToday');
-    const peakTomorrowSpan = document.getElementById('peakTomorrow');
-    const advantageTextSpan = document.getElementById('advantageText');
-    const boostTextSpan = document.getElementById('boostText');
-    const tasmaniaTipSpan = document.getElementById('tasmaniaTip');
-    const sourceLatencySpan = document.getElementById('sourceLatency');
-    const agentSummarySpan = document.getElementById('agentSummary');
-    const agentRecommendationsDiv = document.getElementById('agentRecommendations');
-    const agentStatusSpan = document.getElementById('agentStatus');
-    
-    let currentData = null, forecastData = null;
-    let selectedLocation = 'tasmania';
-    let isUsingBOM = true;
-    let userLat = null;
-    let currentInterval = '3h';
-    let refreshInterval = null;
-    let isInitialized = false;
-    
-    // Wait for modules to be loaded
-    function waitForModules() {
-        return new Promise((resolve) => {
-            if (window.modulesLoaded && window.SpaceWeatherAgent) {
-                resolve();
-            } else {
-                window.addEventListener('auroraModulesLoaded', resolve, { once: true });
-                // Timeout fallback
-                setTimeout(resolve, 5000);
-            }
-        });
+// ==================== SPACE WEATHER AGENT ====================
+class SpaceWeatherAgent {
+    constructor() {
+        this.state = {
+            lastAlertLevel: 'quiet',
+            lastScore: 0,
+            alertHistory: [],
+            lastNotificationTime: null,
+            notificationThrottleMs: 30 * 60 * 1000
+        };
+        this.loadPersistedState();
     }
-    
-    function getMoonPhase(date) {
-        const knownNew = new Date(2024, 0, 11);
-        const lunarCycle = 29.53058867;
-        const daysSince = (date - knownNew) / (1000 * 60 * 60 * 24);
-        const phase = (daysSince % lunarCycle) / lunarCycle;
-        if (phase < 0.03 || phase > 0.97) return { name: '🌑 New', brightness: 0, desc: 'Excellent - dark' };
-        if (phase < 0.22) return { name: '🌒 Waxing', brightness: 0.2, desc: 'Good' };
-        if (phase < 0.28) return { name: '🌓 First Qtr', brightness: 0.5, desc: 'Moderate' };
-        if (phase < 0.47) return { name: '🌔 Waxing Gibb', brightness: 0.7, desc: 'Bright' };
-        if (phase < 0.53) return { name: '🌕 Full', brightness: 1.0, desc: 'Poor - very bright' };
-        if (phase < 0.72) return { name: '🌖 Waning Gibb', brightness: 0.7, desc: 'Bright' };
-        if (phase < 0.78) return { name: '🌗 Last Qtr', brightness: 0.5, desc: 'Moderate' };
-        return { name: '🌘 Waning', brightness: 0.2, desc: 'Good' };
+
+    evaluate(currentData, forecastData, context) {
+        const kp = currentData?.kp || 3;
+        const bz = currentData?.solar?.bz || 0;
+        const moonBrightness = context?.moonBrightness || 0.5;
+        const cloudPercent = context?.cloudPercent || 50;
+        const location = context?.location || 'tasmania';
+
+        const score = this.calculateScore(kp, bz, moonBrightness, cloudPercent, location);
+        const alerts = this.generateAlerts(kp, bz, cloudPercent, score);
+        const alertLevel = this.determineAlertLevel(kp, bz, score);
+        const recommendations = this.generateRecommendations(alertLevel, score, cloudPercent, moonBrightness);
+        const summary = this.generateSummary(kp, bz, alertLevel, score, cloudPercent, moonBrightness);
+        const shouldNotify = this.shouldSendNotification(alertLevel, score, kp, bz);
+
+        this.updateState(alertLevel, score, alerts);
+
+        return {
+            alertLevel, alerts, recommendations, score, summary,
+            shouldNotify, timestamp: Date.now(), kp: kp, bz: bz
+        };
     }
-    
-    function estimateCloudCover() {
-        const hour = new Date().getHours();
-        let percent = 45;
-        if (selectedLocation === 'tasmania') percent = 55 + Math.sin(hour * 0.5) * 15;
-        else if (selectedLocation === 'victoria') percent = 48 + Math.cos(hour * 0.4) * 18;
-        else if (selectedLocation === 'west-aus') percent = 35 + Math.random() * 25;
-        else percent = 42 + Math.random() * 22;
-        percent = Math.min(92, Math.max(8, percent));
-        let coverage = percent < 25 ? 'Clear' : (percent < 55 ? 'Partly cloudy' : (percent < 80 ? 'Cloudy' : 'Overcast'));
-        return { coverage: `${coverage} (${Math.round(percent)}%)`, percent };
+
+    calculateScore(kp, bz, moonBrightness, cloudPercent, location) {
+        let score = 0;
+        if (kp >= 7) score += 45;
+        else if (kp >= 6) score += 40;
+        else if (kp >= 5.67) score += 35;
+        else if (kp >= 5) score += 30;
+        else if (kp >= 4) score += 20;
+        else if (kp >= 3) score += 10;
+        else score += 3;
+
+        if (bz < -10) score += 20;
+        else if (bz < -5) score += 12;
+        else if (bz < 0) score += 6;
+        else if (bz > 5) score -= 10;
+        else if (bz > 10) score -= 15;
+
+        score -= (moonBrightness * 22);
+        score -= (cloudPercent / 100) * 28;
+
+        if (location === 'tasmania') score += 15;
+        else if (location === 'victoria') score += 8;
+        else if (location === 'south-aus') score += 5;
+        else if (location === 'west-aus') score += 4;
+        else if (location === 'nsw') score += 2;
+
+        return Math.min(100, Math.max(0, Math.round(score)));
     }
-    
-    async function fetchNOAAData() {
-        const start = Date.now();
+
+    generateAlerts(kp, bz, cloudPercent, score) {
+        const alerts = [];
+        if (kp >= 7) alerts.push({ severity: 'critical', title: '🚨 SEVERE GEOMAGNETIC STORM', message: `Kp=${kp.toFixed(1)} - Aurora visible far north!`, timestamp: Date.now() });
+        else if (kp >= 5.67) alerts.push({ severity: 'high', title: '🌌 Geomagnetic Storm Active', message: `Kp=${kp.toFixed(1)} - Aurora likely visible from Tasmania.`, timestamp: Date.now() });
+        else if (kp >= 4) alerts.push({ severity: 'medium', title: '✨ Elevated Aurora Activity', message: `Kp=${kp.toFixed(1)} - Aurora possible in Tasmania.`, timestamp: Date.now() });
+        if (bz < -10) alerts.push({ severity: 'high', title: '🧲 STRONG SOUTHWARD Bz', message: `Bz = ${bz.toFixed(1)} nT - Excellent magnetic coupling!`, timestamp: Date.now() });
+        else if (bz < -5) alerts.push({ severity: 'medium', title: '📉 Favorable Bz Conditions', message: `Bz = ${bz.toFixed(1)} nT - Good alignment.`, timestamp: Date.now() });
+        if (cloudPercent > 80) alerts.push({ severity: 'medium', title: '☁️ High Cloud Cover', message: `${Math.round(cloudPercent)}% cloud coverage - May obstruct.`, timestamp: Date.now() });
+        return alerts;
+    }
+
+    determineAlertLevel(kp, bz, score) {
+        if (kp >= 7) return 'extreme';
+        if (kp >= 5.67) return 'storm';
+        if (kp >= 4 || bz < -8) return 'active';
+        if (score >= 40) return 'elevated';
+        return 'quiet';
+    }
+
+    generateRecommendations(alertLevel, score, cloudPercent, moonBrightness) {
+        const recommendations = [];
+        if (alertLevel === 'extreme' || alertLevel === 'storm') {
+            recommendations.push('Go outside NOW - find dark southern horizon');
+            recommendations.push('Use long exposure photography (10-20 seconds)');
+            recommendations.push('Look south between 10pm and 2am local time');
+        } else if (alertLevel === 'active') {
+            recommendations.push('Monitor southern sky after 10pm');
+            recommendations.push('Charge your camera and scout dark locations');
+        }
+        if (cloudPercent > 60) recommendations.push(`High cloud cover (${Math.round(cloudPercent)}%) - find clearer location`);
+        if (moonBrightness > 0.7) recommendations.push('Bright moon will wash out faint aurora - focus on strong storms only');
+        else if (moonBrightness < 0.2) recommendations.push('Dark skies tonight - excellent for photography');
+        if (score >= 70) recommendations.unshift('🔥 EXCELLENT conditions - high probability of visible aurora!');
+        return recommendations.slice(0, 4);
+    }
+
+    generateSummary(kp, bz, alertLevel, score, cloudPercent, moonBrightness) {
+        if (score >= 75) return `🔥 EXCELLENT! Kp=${kp.toFixed(1)}. ${this.getMoonText(moonBrightness)} ${this.getCloudText(cloudPercent)}`;
+        else if (score >= 55) return `✨ GOOD chance. Kp=${kp.toFixed(1)}. ${this.getMoonText(moonBrightness)}`;
+        else if (score >= 35) return `⚠️ MODERATE. Kp=${kp.toFixed(1)}. Best for experienced observers.`;
+        else return `❌ LOW probability. Kp=${kp.toFixed(1)}. Check again in 3-6 hours.`;
+    }
+
+    getMoonText(brightness) {
+        if (brightness > 0.7) return '🌕 Bright moon reduces visibility.';
+        if (brightness > 0.3) return '🌙 Moderate moon interference.';
+        return '🌑 Dark skies favorable.';
+    }
+
+    getCloudText(percent) {
+        if (percent > 70) return '☁️ High cloud may obstruct.';
+        if (percent > 40) return '⛅ Some cloud possible.';
+        return '☀️ Clear skies predicted.';
+    }
+
+    shouldSendNotification(alertLevel, score, kp, bz) {
+        if (this.state.lastNotificationTime && (Date.now() - this.state.lastNotificationTime) < this.state.notificationThrottleMs) return false;
+        return (kp >= 5.67) || (bz < -8) || (score >= 70 && alertLevel !== 'quiet') || (alertLevel === 'extreme' || alertLevel === 'storm');
+    }
+
+    updateState(alertLevel, score, alerts) {
+        this.state = {
+            lastAlertLevel: alertLevel,
+            lastScore: score,
+            alertHistory: [...this.state.alertHistory, { timestamp: Date.now(), alertLevel, score, alertCount: alerts.length }].slice(-50),
+            lastNotificationTime: this.state.lastNotificationTime,
+            notificationThrottleMs: this.state.notificationThrottleMs
+        };
+        this.persistState();
+    }
+
+    persistState() { try { localStorage.setItem('aurora_agent_state', JSON.stringify(this.state)); } catch(e) {} }
+    loadPersistedState() { try { const saved = localStorage.getItem('aurora_agent_state'); if (saved) this.state = { ...this.state, ...JSON.parse(saved) }; } catch(e) {} }
+    markNotificationSent() { this.state.lastNotificationTime = Date.now(); this.persistState(); }
+}
+
+// ==================== NOTIFICATION MANAGER ====================
+class NotificationManager {
+    constructor() { this.permissionGranted = false; this.pendingNotifications = []; this.checkExistingPermission(); }
+    checkExistingPermission() { if ('Notification' in window) this.permissionGranted = Notification.permission === 'granted'; }
+    async requestPermission() {
+        if (!('Notification' in window)) return false;
+        const permission = await Notification.requestPermission();
+        this.permissionGranted = permission === 'granted';
+        if (this.permissionGranted) this.processPending();
+        return this.permissionGranted;
+    }
+    sendNotification(title, body, options = {}) {
+        if (!this.permissionGranted) { this.pendingNotifications.push({ title, body, options, timestamp: Date.now() }); return false; }
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            const kpRes = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json?t=' + Date.now(), { signal: controller.signal });
-            let kp = 3.2;
-            if (kpRes.ok) { const kpData = await kpRes.json(); if (Array.isArray(kpData) && kpData.length > 1) { const last = kpData[kpData.length - 1]; kp = parseFloat(last[1]); if (isNaN(kp)) kp = 3.2; } }
-            
-            let bz = -2;
-            const magRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-2-hour.json?t=' + Date.now(), { signal: controller.signal });
-            if (magRes.ok) { const magData = await magRes.json(); if (Array.isArray(magData) && magData.length > 1) { const last = magData[magData.length - 1]; bz = parseFloat(last[3]) || -2; } }
-            
-            let speed = 400;
-            const plasmaRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json?t=' + Date.now(), { signal: controller.signal });
-            if (plasmaRes.ok) { const plasmaData = await plasmaRes.json(); if (Array.isArray(plasmaData) && plasmaData.length > 1) { const last = plasmaData[plasmaData.length - 1]; speed = parseFloat(last[2]) || 400; } }
-            
-            clearTimeout(timeoutId);
-            
-            const now = new Date();
-            let fcList = [];
-            for (let i = 1; i <= 12; i++) { let dt = new Date(); dt.setHours(now.getHours() + i * 3); let forecastKp = kp + Math.sin(i * 0.8) * 0.5; forecastKp = Math.min(9, Math.max(0, forecastKp)); fcList.push({ timestamp: dt, kp: forecastKp }); }
-            const peakToday = Math.max(...fcList.slice(0, 4).map(f => f.kp), kp);
-            const peakTomorrow = Math.max(...fcList.slice(4, 8).map(f => f.kp), peakToday);
-            return { kp: Math.min(9, Math.max(0, kp)), solar: { speed: Math.round(speed), bz: parseFloat(bz.toFixed(1)) }, forecast: { allForecasts: fcList, peakToday, peakTomorrow }, source: 'NOAA', latency: Date.now() - start };
-        } catch (e) { 
-            console.error('NOAA fetch error:', e);
-            throw e; 
+            const notification = new Notification(title, { body: body, icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==', badge: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAABgElEQVR4Xu3TAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8GxTWAAHhqFlZAAAAAElFTkSuQmCC', vibrate: [200, 100, 200], silent: false, requireInteraction: options.requireInteraction || false, ...options });
+            notification.onclick = (event) => { event.preventDefault(); window.focus(); notification.close(); if (options.onClick) options.onClick(); };
+            return true;
+        } catch(e) { return false; }
+    }
+    processPending() { while (this.pendingNotifications.length > 0) { const notif = this.pendingNotifications.shift(); this.sendNotification(notif.title, notif.body, notif.options); } }
+    sendAuroraAlert(agentResult, location, onNotificationSent = null) {
+        if (!agentResult.shouldNotify) return false;
+        let title = '', body = agentResult.summary;
+        switch (agentResult.alertLevel) {
+            case 'extreme': title = '🚨 EXTREME AURORA ALERT!'; body = `Kp=${agentResult.kp.toFixed(1)}! ${agentResult.summary.substring(0, 80)}`; break;
+            case 'storm': title = '🌌 AURORA STORM ACTIVE!'; break;
+            case 'active': title = '✨ Aurora Activity Rising'; break;
+            default: title = '📊 Aurora Update';
         }
+        if (location && location !== 'default') body = `${location.toUpperCase()}: ${body}`;
+        const result = this.sendNotification(title, body, { requireInteraction: agentResult.alertLevel === 'extreme', onClick: () => { const dashboard = document.querySelector('.dashboard'); if (dashboard) dashboard.scrollIntoView({ behavior: 'smooth' }); } });
+        if (result && onNotificationSent) onNotificationSent();
+        return result;
     }
-    
-    async function fetchData() {
-        if (!isInitialized) return;
+    getPermissionStatus() { if (!('Notification' in window)) return 'unsupported'; return Notification.permission; }
+}
+
+// ==================== DATA CACHE ====================
+class DataCache {
+    constructor(maxAgeMs = 24 * 60 * 60 * 1000) { this.maxAge = maxAgeMs; this.cacheKey = 'aurora_data_cache'; this.version = '2.0.0'; this.checkVersion(); }
+    checkVersion() { try { const storedVersion = localStorage.getItem('aurora_cache_version'); if (storedVersion !== this.version) { this.clearCache(); localStorage.setItem('aurora_cache_version', this.version); } } catch(e) {} }
+    saveData(dataType, data) { try { const cache = this.loadCache(); cache[dataType] = { data: data, timestamp: Date.now(), version: this.version }; localStorage.setItem(this.cacheKey, JSON.stringify(cache)); return true; } catch(e) { return false; } }
+    loadCache() { try { const cached = localStorage.getItem(this.cacheKey); if (!cached) return {}; const parsed = JSON.parse(cached); for (const key in parsed) { if (parsed[key] && parsed[key].version && parsed[key].version !== this.version) delete parsed[key]; } return parsed; } catch(e) { this.clearCache(); return {}; } }
+    getData(dataType) { const cache = this.loadCache(); const entry = cache[dataType]; if (!entry) return null; if (Date.now() - entry.timestamp > this.maxAge) { delete cache[dataType]; localStorage.setItem(this.cacheKey, JSON.stringify(cache)); return null; } return entry.data; }
+    clearCache() { localStorage.removeItem(this.cacheKey); }
+    saveAuroraData(currentData, forecastData) { this.saveData('current', currentData); this.saveData('forecast', forecastData); this.saveData('last_update', new Date().toISOString()); const cache = this.loadCache(); cache._version = this.version; localStorage.setItem(this.cacheKey, JSON.stringify(cache)); }
+    getCachedAuroraData() { return { current: this.getData('current'), forecast: this.getData('forecast'), lastUpdate: this.getData('last_update') }; }
+    hasValidData() { return this.getData('current') !== null && this.getData('forecast') !== null; }
+}
+
+// ==================== MAIN APP ====================
+let auroraAgent = null;
+let notificationManager = null;
+let dataCache = null;
+let lastAgentResult = null;
+let currentData = null, forecastData = null;
+let selectedLocation = 'tasmania';
+let refreshInterval = null;
+let isInitialized = false;
+
+// DOM Elements
+const dashboard = document.getElementById('dashboardContent');
+const loadingDiv = document.getElementById('loading');
+const dataStatusSpan = document.getElementById('dataStatus');
+const kpSpan = document.getElementById('kpValue');
+const kpDesc = document.getElementById('kpDescription');
+const kpIndicator = document.getElementById('kpIndicator');
+const visibilitySpan = document.getElementById('visibilityChance');
+const stormSpan = document.getElementById('stormLevel');
+const moonPhaseSpan = document.getElementById('moonPhase');
+const moonDetailSpan = document.getElementById('moonDetail');
+const cloudSpan = document.getElementById('cloudCover');
+const viewingScoreSpan = document.getElementById('viewingScore');
+const viewingAdviceSpan = document.getElementById('viewingAdvice');
+const speedSpan = document.getElementById('speedValue');
+const bzSpan = document.getElementById('bzValue');
+const locationChanceSpan = document.getElementById('locationChance');
+const alertsDiv = document.getElementById('alertsList');
+const peakTodaySpan = document.getElementById('peakToday');
+const peakTomorrowSpan = document.getElementById('peakTomorrow');
+const advantageTextSpan = document.getElementById('advantageText');
+const boostTextSpan = document.getElementById('boostText');
+const tasmaniaTipSpan = document.getElementById('tasmaniaTip');
+const sourceLatencySpan = document.getElementById('sourceLatency');
+const agentSummarySpan = document.getElementById('agentSummary');
+const agentRecommendationsDiv = document.getElementById('agentRecommendations');
+const agentStatusSpan = document.getElementById('agentStatus');
+
+function getMoonPhase(date) {
+    const knownNew = new Date(2024, 0, 11);
+    const lunarCycle = 29.53058867;
+    const daysSince = (date - knownNew) / (1000 * 60 * 60 * 24);
+    const phase = (daysSince % lunarCycle) / lunarCycle;
+    if (phase < 0.03 || phase > 0.97) return { name: '🌑 New', brightness: 0, desc: 'Excellent - dark' };
+    if (phase < 0.22) return { name: '🌒 Waxing', brightness: 0.2, desc: 'Good' };
+    if (phase < 0.28) return { name: '🌓 First Qtr', brightness: 0.5, desc: 'Moderate' };
+    if (phase < 0.47) return { name: '🌔 Waxing Gibb', brightness: 0.7, desc: 'Bright' };
+    if (phase < 0.53) return { name: '🌕 Full', brightness: 1.0, desc: 'Poor - very bright' };
+    if (phase < 0.72) return { name: '🌖 Waning Gibb', brightness: 0.7, desc: 'Bright' };
+    if (phase < 0.78) return { name: '🌗 Last Qtr', brightness: 0.5, desc: 'Moderate' };
+    return { name: '🌘 Waning', brightness: 0.2, desc: 'Good' };
+}
+
+function estimateCloudCover() {
+    const hour = new Date().getHours();
+    let percent = 45;
+    if (selectedLocation === 'tasmania') percent = 55 + Math.sin(hour * 0.5) * 15;
+    else if (selectedLocation === 'victoria') percent = 48 + Math.cos(hour * 0.4) * 18;
+    else if (selectedLocation === 'west-aus') percent = 35 + Math.random() * 25;
+    else percent = 42 + Math.random() * 22;
+    percent = Math.min(92, Math.max(8, percent));
+    let coverage = percent < 25 ? 'Clear' : (percent < 55 ? 'Partly cloudy' : (percent < 80 ? 'Cloudy' : 'Overcast'));
+    return { coverage: `${coverage} (${Math.round(percent)}%)`, percent };
+}
+
+async function fetchNOAAData() {
+    const start = Date.now();
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        loadingDiv.style.display = 'block';
-        dataStatusSpan.innerText = '🔄 FETCHING';
-        dataStatusSpan.className = 'data-status status-loading';
+        const kpRes = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json?t=' + Date.now(), { signal: controller.signal });
+        let kp = 3.2;
+        if (kpRes.ok) { const kpData = await kpRes.json(); if (Array.isArray(kpData) && kpData.length > 1) { const last = kpData[kpData.length - 1]; kp = parseFloat(last[1]); if (isNaN(kp)) kp = 3.2; } }
         
-        try {
-            let data = await fetchNOAAData();
-            currentData = data;
-            forecastData = data.forecast;
-            
-            if (dataCache) {
-                dataCache.saveAuroraData(currentData, forecastData);
-            }
-            
-            sourceLatencySpan.innerText = data.latency + ' ms';
-            dataStatusSpan.innerText = '✅ NOAA DATA';
-            dataStatusSpan.className = 'data-status status-noaa';
-            
-            await evaluateWithAgent();
-            
-            dashboard.style.display = 'block';
-            showAlert('success', `Data updated in ${data.latency}ms`);
-        } catch (err) {
-            console.error(err);
-            if (dataCache && dataCache.hasValidData()) {
-                const cached = dataCache.getCachedAuroraData();
-                currentData = cached.current;
-                forecastData = cached.forecast;
-                await evaluateWithAgent();
-                dashboard.style.display = 'block';
-                dataStatusSpan.innerText = '📦 CACHED';
-                dataStatusSpan.className = 'data-status';
-                showAlert('warning', 'Using cached data - NOAA unavailable');
-            } else {
-                currentData = { kp: 3.5, solar: { speed: 410, bz: -2.5 }, forecast: { peakToday: 4.0, peakTomorrow: 4.2, allForecasts: [] } };
-                forecastData = currentData.forecast;
-                for (let i = 1; i <= 8; i++) { let dt = new Date(); dt.setHours(dt.getHours() + i * 3); forecastData.allForecasts.push({ timestamp: dt, kp: 3.5 + Math.sin(i) * 0.4 }); }
-                await evaluateWithAgent();
-                dashboard.style.display = 'block';
-                dataStatusSpan.innerText = '⚠️ ESTIMATED';
-                dataStatusSpan.className = 'data-status status-loading';
-                showAlert('warning', 'Using estimated data - NOAA unavailable');
-            }
-        } finally { 
-            loadingDiv.style.display = 'none'; 
+        let bz = -2;
+        const magRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-2-hour.json?t=' + Date.now(), { signal: controller.signal });
+        if (magRes.ok) { const magData = await magRes.json(); if (Array.isArray(magData) && magData.length > 1) { const last = magData[magData.length - 1]; bz = parseFloat(last[3]) || -2; } }
+        
+        let speed = 400;
+        const plasmaRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json?t=' + Date.now(), { signal: controller.signal });
+        if (plasmaRes.ok) { const plasmaData = await plasmaRes.json(); if (Array.isArray(plasmaData) && plasmaData.length > 1) { const last = plasmaData[plasmaData.length - 1]; speed = parseFloat(last[2]) || 400; } }
+        
+        clearTimeout(timeoutId);
+        
+        const now = new Date();
+        let fcList = [];
+        for (let i = 1; i <= 12; i++) { 
+            let dt = new Date(now.getTime() + i * 3 * 60 * 60 * 1000);
+            let forecastKp = kp + Math.sin(i * 0.8) * 0.5; 
+            forecastKp = Math.min(9, Math.max(0, forecastKp)); 
+            fcList.push({ timestamp: dt, kp: forecastKp }); 
         }
+        const peakToday = Math.max(...fcList.slice(0, 4).map(f => f.kp), kp);
+        const peakTomorrow = Math.max(...fcList.slice(4, 8).map(f => f.kp), peakToday);
+        return { kp: Math.min(9, Math.max(0, kp)), solar: { speed: Math.round(speed), bz: parseFloat(bz.toFixed(1)) }, forecast: { allForecasts: fcList, peakToday, peakTomorrow }, source: 'NOAA', latency: Date.now() - start };
+    } catch (e) { 
+        console.error('NOAA fetch error:', e);
+        throw e; 
     }
-    
-    async function evaluateWithAgent() {
-        if (!currentData || !auroraAgent) return;
-        
-        const moon = getMoonPhase(new Date());
-        const cloud = estimateCloudCover();
-        
-        const agentResult = auroraAgent.evaluate(currentData, forecastData, {
-            moonBrightness: moon.brightness,
-            cloudPercent: cloud.percent,
-            location: selectedLocation,
-            timestamp: Date.now()
-        });
-        
-        lastAgentResult = agentResult;
-        
-        updateUIFromAgent(agentResult, moon, cloud);
-        
-        if (agentResult.shouldNotify && notificationManager && notificationManager.permissionGranted) {
-            const notified = notificationManager.sendAuroraAlert(agentResult, selectedLocation, () => {
-                auroraAgent.markNotificationSent();
-            });
-            if (notified) {
-                dataStatusSpan.classList.add('status-agent');
-                setTimeout(() => dataStatusSpan.classList.remove('status-agent'), 2000);
-            }
-        }
-    }
-    
-    function updateUIFromAgent(agentResult, moon, cloud) {
-        const kp = currentData.kp;
-        const bz = currentData.solar.bz;
-        
-        viewingScoreSpan.innerText = agentResult.score + '/100';
-        
-        agentSummarySpan.innerHTML = `🤖 ${agentResult.summary}`;
-        
-        if (agentResult.recommendations && agentResult.recommendations.length) {
-            agentRecommendationsDiv.innerHTML = agentResult.recommendations.map(r => 
-                `<div class="agent-recommendation">💡 ${r}</div>`
-            ).join('');
-        } else {
-            agentRecommendationsDiv.innerHTML = '<div>No active recommendations. Keep monitoring.</div>';
-        }
-        
-        if (agentResult.alerts && agentResult.alerts.length) {
-            alertsDiv.innerHTML = agentResult.alerts.map(alert => {
-                let severityClass = '';
-                if (alert.severity === 'critical') severityClass = 'alert-critical';
-                else if (alert.severity === 'high') severityClass = 'alert-high';
-                else if (alert.severity === 'medium') severityClass = 'alert-medium';
-                return `<div class="${severityClass}" style="padding:8px;border-radius:10px;margin:6px 0;">
-                            <strong>${alert.title}</strong><br>
-                            <span style="font-size:0.7rem;">${alert.message}</span>
-                        </div>`;
-            }).join('');
-        } else {
-            alertsDiv.innerHTML = '✅ No active alerts from agent';
-        }
-        
-        if (agentResult.score >= 70) viewingAdviceSpan.innerText = '🔥 Excellent! Go outside!';
-        else if (agentResult.score >= 50) viewingAdviceSpan.innerText = '👍 Good chance - find dark skies';
-        else if (agentResult.score >= 30) viewingAdviceSpan.innerText = '⚠️ Marginal - check horizon';
-        else viewingAdviceSpan.innerText = '❌ Poor - try another night';
-        
-        kpSpan.innerText = kp.toFixed(1);
-        kpDesc.innerText = kp >= 6 ? '⚡ Storm - excellent chance!' : (kp >= 4 ? '✨ Active - keep watching' : '🌙 Quiet - low probability');
-        const percentPos = (kp / 9) * 100;
-        kpIndicator.style.left = `${Math.min(100, Math.max(0, percentPos))}%`;
-        stormSpan.innerText = kp >= 7 ? 'Severe' : (kp >= 5 ? 'Moderate' : (kp >= 4 ? 'Active' : 'Quiet'));
-        moonPhaseSpan.innerText = moon.name;
-        moonDetailSpan.innerText = moon.desc;
-        cloudSpan.innerText = cloud.coverage;
-        
-        let baseChance = Math.min(90, Math.max(0, (kp - 3) * 22));
-        if (selectedLocation === 'tasmania') baseChance = Math.min(95, baseChance * 1.35);
-        else if (selectedLocation === 'victoria') baseChance = Math.min(88, baseChance * 1.1);
-        const finalChance = Math.round(baseChance);
-        locationChanceSpan.innerText = finalChance + '%';
-        visibilitySpan.innerText = finalChance + '%';
-        
-        speedSpan.innerText = currentData.solar.speed;
-        bzSpan.innerText = currentData.solar.bz.toFixed(1);
-        
-        if (forecastData) { 
-            peakTodaySpan.innerText = forecastData.peakToday?.toFixed(1) + ' K'; 
-            peakTomorrowSpan.innerText = forecastData.peakTomorrow?.toFixed(1) + ' K'; 
-            updateForecastChart(); 
-        }
-        
-        const boost = Math.min(65, 30 + Math.floor(kp * 4));
-        advantageTextSpan.innerText = `Tasmania closest to oval - K${kp.toFixed(1)} gives ${boost}% better odds`;
-        boostTextSpan.innerText = `+${boost}% vs mainland`;
-        tasmaniaTipSpan.innerText = kp >= 5 ? 'Head to southern coast after 10pm!' : 'Check again when K-index rises';
-    }
-    
-    function updateForecastChart() {
-        const container = document.getElementById('forecastChartContainer');
-        if (!container) return;
-        container.innerHTML = '';
-        let list = [];
-        if (currentInterval === 'daily') {
-            list = [ { label: 'Today', kp: forecastData?.peakToday || 3.5 }, { label: 'Tomorrow', kp: forecastData?.peakTomorrow || 4.0 }, { label: 'Day 3', kp: (forecastData?.peakTomorrow || 4.0) - 0.3 } ];
-        } else {
-            if (forecastData?.allForecasts && forecastData.allForecasts.length) list = forecastData.allForecasts.slice(0, 8).map(f => ({ label: f.timestamp.getHours() + 'h', kp: f.kp }));
-            else for (let i = 1; i <= 8; i++) list.push({ label: (new Date().getHours() + i * 3) % 24 + 'h', kp: 3.5 });
-        }
-        list.forEach(item => { const div = document.createElement('div'); div.className = 'forecast-bar-container'; const h = Math.min(110, (item.kp / 9) * 110); div.innerHTML = `<div class="forecast-bar" style="height:${h}px;"></div><div style="font-size:9px;margin-top:4px;">${item.label}</div><div style="font-size:9px;">${item.kp.toFixed(1)}</div>`; container.appendChild(div); });
-    }
-    
-    function selectLocation(loc) { 
-        selectedLocation = loc; 
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
-        document.querySelector(`.tab[data-loc="${loc}"]`)?.classList.add('active'); 
-        const tasDropdown = document.getElementById('tasmaniaDropdown'); 
-        if (loc === 'tasmania') tasDropdown.style.display = 'block'; 
-        else tasDropdown.style.display = 'none'; 
-        if (currentData) evaluateWithAgent();
-    }
-    
-    function getLocation() { 
-        if (navigator.geolocation) { 
-            navigator.geolocation.getCurrentPosition(pos => { 
-                userLat = pos.coords.latitude; 
-                let closest = 'victoria'; 
-                if (userLat < -40) closest = 'tasmania'; 
-                else if (userLat < -35) closest = 'victoria'; 
-                else if (userLat < -32) closest = 'south-aus'; 
-                else closest = 'nsw'; 
-                selectLocation(closest); 
-                document.getElementById('locationNote').innerText = `📍 Set to ${closest}`; 
-            }, () => { 
-                alert('Location permission denied'); 
-            }); 
-        } 
-    }
-    
-    async function enableNotifications() {
-        if (notificationManager) {
-            const granted = await notificationManager.requestPermission();
-            if (granted) {
-                showAlert('success', '🔔 Notifications enabled! You will receive aurora alerts.');
-                notificationManager.sendNotification('Aurora Tracker', 'Notifications are now active!');
-            } else {
-                showAlert('warning', 'Notification permission denied. Check browser settings.');
-            }
-        } else {
-            showAlert('warning', 'Notification manager not available.');
-        }
-    }
-    
-    function showAlert(type, msg) {
-        const alertDiv = document.getElementById('dataAlert');
-        alertDiv.innerHTML = msg;
-        alertDiv.style.display = 'block';
-        alertDiv.style.background = type === 'success' ? 'rgba(0,255,170,0.15)' : (type === 'warning' ? 'rgba(255,140,66,0.2)' : 'rgba(100,100,255,0.15)');
-        alertDiv.style.border = '1px solid var(--bom-orange)';
-        setTimeout(() => { alertDiv.style.display = 'none'; }, 3500);
-    }
-    
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(() => {
-            console.log('🤖 Agent auto-refresh triggered');
-            fetchData();
-        }, 10 * 60 * 1000);
-    }
-    
-    async function init() {
-        await waitForModules();
-        
-        // Get module classes from window
-        SpaceWeatherAgent = window.SpaceWeatherAgent;
-        NotificationManager = window.NotificationManager;
-        DataCache = window.DataCache;
-        
-        if (!SpaceWeatherAgent || !NotificationManager || !DataCache) {
-            console.error('Modules not available');
-            dataStatusSpan.innerHTML = '⚠️ MODULE ERROR';
-            return;
-        }
-        
-        // Initialize core components
-        auroraAgent = new SpaceWeatherAgent();
-        notificationManager = new NotificationManager();
-        dataCache = new DataCache();
-        
-        agentStatusSpan.innerText = '🤖 Agent: Active';
-        isInitialized = true;
-        
-        // Load cached data first for immediate display
-        const cached = dataCache.getCachedAuroraData();
-        if (cached.current && cached.forecast) {
+}
+
+async function fetchData() {
+    if (!isInitialized) return;
+    loadingDiv.style.display = 'block';
+    dataStatusSpan.innerText = '🔄 FETCHING';
+    dataStatusSpan.className = 'data-status status-loading';
+    try {
+        let data = await fetchNOAAData();
+        currentData = data;
+        forecastData = data.forecast;
+        if (dataCache) dataCache.saveAuroraData(currentData, forecastData);
+        sourceLatencySpan.innerText = data.latency + ' ms';
+        dataStatusSpan.innerText = '✅ NOAA DATA';
+        dataStatusSpan.className = 'data-status status-noaa';
+        await evaluateWithAgent();
+        dashboard.style.display = 'block';
+        showAlert('success', `Data updated in ${data.latency}ms`);
+    } catch (err) {
+        console.error(err);
+        if (dataCache && dataCache.hasValidData()) {
+            const cached = dataCache.getCachedAuroraData();
             currentData = cached.current;
             forecastData = cached.forecast;
             await evaluateWithAgent();
             dashboard.style.display = 'block';
-            showAlert('info', '📦 Loaded cached data while fetching latest...');
+            dataStatusSpan.innerText = '📦 CACHED';
+            dataStatusSpan.className = 'data-status';
+            showAlert('warning', 'Using cached data - NOAA unavailable');
+        } else {
+            currentData = { kp: 3.5, solar: { speed: 410, bz: -2.5 }, forecast: { peakToday: 4.0, peakTomorrow: 4.2, allForecasts: [] } };
+            forecastData = currentData.forecast;
+            for (let i = 1; i <= 8; i++) { let dt = new Date(Date.now() + i * 3 * 60 * 60 * 1000); forecastData.allForecasts.push({ timestamp: dt, kp: 3.5 + Math.sin(i) * 0.4 }); }
+            await evaluateWithAgent();
+            dashboard.style.display = 'block';
+            dataStatusSpan.innerText = '⚠️ ESTIMATED';
+            dataStatusSpan.className = 'data-status status-loading';
+            showAlert('warning', 'Using estimated data - NOAA unavailable');
         }
-        
-        // Fetch fresh data
-        await fetchData();
-        startAutoRefresh();
-        
-        dataStatusSpan.innerHTML = '🤖 AGENT ACTIVE';
-        dataStatusSpan.classList.add('status-agent');
-    }
-    
-    // Set up event listeners
-    document.getElementById('simpleViewBtn').onclick = () => { document.body.classList.add('simple-view'); document.getElementById('simpleViewBtn').classList.add('active'); document.getElementById('detailedViewBtn').classList.remove('active'); };
-    document.getElementById('detailedViewBtn').onclick = () => { document.body.classList.remove('simple-view'); document.getElementById('detailedViewBtn').classList.add('active'); document.getElementById('simpleViewBtn').classList.remove('active'); };
-    document.getElementById('interval3hBtn').onclick = () => { currentInterval = '3h'; document.getElementById('interval3hBtn').classList.add('active'); document.getElementById('intervalDailyBtn').classList.remove('active'); updateForecastChart(); };
-    document.getElementById('intervalDailyBtn').onclick = () => { currentInterval = 'daily'; document.getElementById('intervalDailyBtn').classList.add('active'); document.getElementById('interval3hBtn').classList.remove('active'); updateForecastChart(); };
-    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => selectLocation(t.dataset.loc)));
-    document.getElementById('fetchBtn').onclick = () => fetchData();
-    document.getElementById('locationBtn').onclick = () => getLocation();
-    document.getElementById('notifyBtn').onclick = () => enableNotifications();
-    document.getElementById('useBOMToggle').onchange = () => fetchData();
-    document.getElementById('tasmaniaDropdownHeader').onclick = () => { document.getElementById('tasmaniaAdvantageContent').classList.toggle('open'); };
-    
-    // Starfield
-    const starsDiv = document.getElementById('stars');
-    for (let i = 0; i < 120; i++) { 
-        const star = document.createElement('div'); 
-        star.className = 'star' + (Math.random() > 0.7 ? ' twinkle' : ''); 
-        star.style.left = Math.random() * 100 + '%'; 
-        star.style.top = Math.random() * 100 + '%'; 
-        star.style.width = (Math.random() * 2 + 1) + 'px'; 
-        star.style.height = star.style.width; 
-        star.style.opacity = 0.3 + Math.random() * 0.6; 
-        starsDiv.appendChild(star); 
-    }
+    } finally { loadingDiv.style.display = 'none'; }
+}
 
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW registered', reg.scope))
-                .catch(err => console.warn('SW failed', err));
-        });
+async function evaluateWithAgent() {
+    if (!currentData || !auroraAgent) return;
+    const moon = getMoonPhase(new Date());
+    const cloud = estimateCloudCover();
+    const agentResult = auroraAgent.evaluate(currentData, forecastData, {
+        moonBrightness: moon.brightness, cloudPercent: cloud.percent,
+        location: selectedLocation, timestamp: Date.now()
+    });
+    lastAgentResult = agentResult;
+    updateUIFromAgent(agentResult, moon, cloud);
+    if (agentResult.shouldNotify && notificationManager && notificationManager.permissionGranted) {
+        notificationManager.sendAuroraAlert(agentResult, selectedLocation, () => { auroraAgent.markNotificationSent(); });
+    }
+}
+
+function updateUIFromAgent(agentResult, moon, cloud) {
+    const kp = currentData.kp;
+    viewingScoreSpan.innerText = agentResult.score + '/100';
+    agentSummarySpan.innerHTML = `🤖 ${agentResult.summary}`;
+    
+    if (agentResult.recommendations && agentResult.recommendations.length) {
+        agentRecommendationsDiv.innerHTML = agentResult.recommendations.map(r => `<div class="agent-recommendation">💡 ${r}</div>`).join('');
+    } else {
+        agentRecommendationsDiv.innerHTML = '<div>No active recommendations. Keep monitoring.</div>';
     }
     
-    // Start the app
-    init();
+    if (agentResult.alerts && agentResult.alerts.length) {
+        alertsDiv.innerHTML = agentResult.alerts.map(alert => {
+            let severityClass = '';
+            if (alert.severity === 'critical') severityClass = 'alert-critical';
+            else if (alert.severity === 'high') severityClass = 'alert-high';
+            else if (alert.severity === 'medium') severityClass = 'alert-medium';
+            return `<div class="${severityClass}" style="padding:8px;border-radius:10px;margin:6px 0;"><strong>${alert.title}</strong><br><span style="font-size:0.7rem;">${alert.message}</span></div>`;
+        }).join('');
+    } else {
+        alertsDiv.innerHTML = '✅ No active alerts from agent';
+    }
+    
+    if (agentResult.score >= 70) viewingAdviceSpan.innerText = '🔥 Excellent! Go outside!';
+    else if (agentResult.score >= 50) viewingAdviceSpan.innerText = '👍 Good chance - find dark skies';
+    else if (agentResult.score >= 30) viewingAdviceSpan.innerText = '⚠️ Marginal - check horizon';
+    else viewingAdviceSpan.innerText = '❌ Poor - try another night';
+    
+    kpSpan.innerText = kp.toFixed(1);
+    kpDesc.innerText = kp >= 6 ? '⚡ Storm - excellent chance!' : (kp >= 4 ? '✨ Active - keep watching' : '🌙 Quiet - low probability');
+    const percentPos = (kp / 9) * 100;
+    kpIndicator.style.left = `${Math.min(100, Math.max(0, percentPos))}%`;
+    stormSpan.innerText = kp >= 7 ? 'Severe' : (kp >= 5 ? 'Moderate' : (kp >= 4 ? 'Active' : 'Quiet'));
+    moonPhaseSpan.innerText = moon.name;
+    moonDetailSpan.innerText = moon.desc;
+    cloudSpan.innerText = cloud.coverage;
+    
+    let baseChance = Math.min(90, Math.max(0, (kp - 3) * 22));
+    if (selectedLocation === 'tasmania') baseChance = Math.min(95, baseChance * 1.35);
+    else if (selectedLocation === 'victoria') baseChance = Math.min(88, baseChance * 1.1);
+    const finalChance = Math.round(baseChance);
+    locationChanceSpan.innerText = finalChance + '%';
+    visibilitySpan.innerText = finalChance + '%';
+    
+    speedSpan.innerText = currentData.solar.speed;
+    bzSpan.innerText = currentData.solar.bz.toFixed(1);
+    
+    if (forecastData) { 
+        peakTodaySpan.innerText = forecastData.peakToday?.toFixed(1) + ' K'; 
+        peakTomorrowSpan.innerText = forecastData.peakTomorrow?.toFixed(1) + ' K'; 
+        updateForecastChart(); 
+    }
+    
+    const boost = Math.min(65, 30 + Math.floor(kp * 4));
+    advantageTextSpan.innerText = `Tasmania closest to oval - K${kp.toFixed(1)} gives ${boost}% better odds`;
+    boostTextSpan.innerText = `+${boost}% vs mainland`;
+    tasmaniaTipSpan.innerText = kp >= 5 ? 'Head to southern coast after 10pm!' : 'Check again when K-index rises';
+}
+
+function updateForecastChart() {
+    const container = document.getElementById('forecastChartContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    let list = [];
+    if (currentInterval === 'daily') {
+        list = [ { label: 'Today', kp: forecastData?.peakToday || 3.5 }, { label: 'Tomorrow', kp: forecastData?.peakTomorrow || 4.0 }, { label: 'Day 3', kp: (forecastData?.peakTomorrow || 4.0) - 0.3 } ];
+    } else {
+        if (forecastData?.allForecasts && forecastData.allForecasts.length) {
+            list = forecastData.allForecasts.slice(0, 8).map(f => ({ label: f.timestamp.getHours() + 'h', kp: f.kp }));
+        } else {
+            for (let i = 1; i <= 8; i++) list.push({ label: ((new Date().getHours() + i * 3) % 24) + 'h', kp: 3.5 });
+        }
+    }
+    list.forEach(item => { 
+        const div = document.createElement('div'); 
+        div.className = 'forecast-bar-container'; 
+        const h = Math.min(110, (item.kp / 9) * 110); 
+        div.innerHTML = `<div class="forecast-bar" style="height:${h}px;"></div><div style="font-size:9px;margin-top:4px;">${item.label}</div><div style="font-size:9px;">${item.kp.toFixed(1)}</div>`; 
+        container.appendChild(div); 
+    });
+}
+
+let currentInterval = '3h';
+
+function selectLocation(loc) { 
+    selectedLocation = loc; 
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
+    document.querySelector(`.tab[data-loc="${loc}"]`)?.classList.add('active'); 
+    const tasDropdown = document.getElementById('tasmaniaDropdown'); 
+    if (loc === 'tasmania') tasDropdown.style.display = 'block'; 
+    else tasDropdown.style.display = 'none'; 
+    if (currentData) evaluateWithAgent();
+}
+
+function getLocation() { 
+    if (navigator.geolocation) { 
+        navigator.geolocation.getCurrentPosition(pos => { 
+            const userLat = pos.coords.latitude; 
+            let closest = 'victoria'; 
+            if (userLat < -40) closest = 'tasmania'; 
+            else if (userLat < -35) closest = 'victoria'; 
+            else if (userLat < -32) closest = 'south-aus'; 
+            else closest = 'nsw'; 
+            selectLocation(closest); 
+            document.getElementById('locationNote').innerText = `📍 Set to ${closest}`; 
+        }, () => { alert('Location permission denied'); }); 
+    } 
+}
+
+async function enableNotifications() {
+    if (notificationManager) {
+        const granted = await notificationManager.requestPermission();
+        if (granted) {
+            showAlert('success', '🔔 Notifications enabled! You will receive aurora alerts.');
+            notificationManager.sendNotification('Aurora Tracker', 'Notifications are now active!');
+        } else {
+            showAlert('warning', 'Notification permission denied.');
+        }
+    }
+}
+
+function showAlert(type, msg) {
+    const alertDiv = document.getElementById('dataAlert');
+    alertDiv.innerHTML = msg;
+    alertDiv.style.display = 'block';
+    alertDiv.style.background = type === 'success' ? 'rgba(0,255,170,0.15)' : 'rgba(255,140,66,0.2)';
+    alertDiv.style.border = '1px solid var(--bom-orange)';
+    setTimeout(() => { alertDiv.style.display = 'none'; }, 3500);
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => { fetchData(); }, 10 * 60 * 1000);
+}
+
+async function init() {
+    console.log('Initializing app...');
+    dataStatusSpan.innerText = '🔄 INIT';
+    
+    auroraAgent = new SpaceWeatherAgent();
+    notificationManager = new NotificationManager();
+    dataCache = new DataCache();
+    agentStatusSpan.innerText = '🤖 Agent: Active';
+    isInitialized = true;
+    
+    const cached = dataCache.getCachedAuroraData();
+    if (cached.current && cached.forecast) {
+        currentData = cached.current;
+        forecastData = cached.forecast;
+        await evaluateWithAgent();
+        dashboard.style.display = 'block';
+        showAlert('info', '📦 Loaded cached data');
+    }
+    
+    await fetchData();
+    startAutoRefresh();
+    dataStatusSpan.innerHTML = '🤖 READY';
+    dataStatusSpan.classList.add('status-agent');
+    console.log('App initialized successfully');
+}
+
+// Event Listeners
+document.getElementById('simpleViewBtn').onclick = () => { document.body.classList.add('simple-view'); document.getElementById('simpleViewBtn').classList.add('active'); document.getElementById('detailedViewBtn').classList.remove('active'); };
+document.getElementById('detailedViewBtn').onclick = () => { document.body.classList.remove('simple-view'); document.getElementById('detailedViewBtn').classList.add('active'); document.getElementById('simpleViewBtn').classList.remove('active'); };
+document.getElementById('interval3hBtn').onclick = () => { currentInterval = '3h'; document.getElementById('interval3hBtn').classList.add('active'); document.getElementById('intervalDailyBtn').classList.remove('active'); updateForecastChart(); };
+document.getElementById('intervalDailyBtn').onclick = () => { currentInterval = 'daily'; document.getElementById('intervalDailyBtn').classList.add('active'); document.getElementById('interval3hBtn').classList.remove('active'); updateForecastChart(); };
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => selectLocation(t.dataset.loc)));
+document.getElementById('fetchBtn').onclick = () => fetchData();
+document.getElementById('locationBtn').onclick = () => getLocation();
+document.getElementById('notifyBtn').onclick = () => enableNotifications();
+document.getElementById('tasmaniaDropdownHeader').onclick = () => { document.getElementById('tasmaniaAdvantageContent').classList.toggle('open'); };
+
+// Starfield
+const starsDiv = document.getElementById('stars');
+for (let i = 0; i < 120; i++) { 
+    const star = document.createElement('div'); 
+    star.className = 'star' + (Math.random() > 0.7 ? ' twinkle' : ''); 
+    star.style.left = Math.random() * 100 + '%'; 
+    star.style.top = Math.random() * 100 + '%'; 
+    star.style.width = (Math.random() * 2 + 1) + 'px'; 
+    star.style.height = star.style.width; 
+    star.style.opacity = 0.3 + Math.random() * 0.6; 
+    starsDiv.appendChild(star); 
+}
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW failed:', err));
+    });
+}
+
+// Start the app
+init();
 </script>
 </body>
 </html>
