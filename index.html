@@ -103,9 +103,9 @@
 
 <script type="module">
     // Import agent modules (ES modules now working)
-    import { SpaceWeatherAgent } from './agent/spaceWeatherAgent.js';
-    import { NotificationManager } from './notifications/manager.js';
-    import { DataCache } from './services/dataCache.js';
+    import { SpaceWeatherAgent } from '/agent/spaceWeatherAgent.js';
+    import { NotificationManager } from '/notifications/manager.js';
+    import { DataCache } from '/services/dataCache.js';
     
     let auroraAgent = null;
     let notificationManager = null;
@@ -486,6 +486,14 @@
         star.style.opacity = 0.3 + Math.random() * 0.6; 
         starsDiv.appendChild(star); 
     }
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registered', reg.scope))
+            .catch(err => console.warn('SW failed', err));
+    });
+}
     
     // Start the app
     init();
