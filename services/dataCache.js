@@ -1,10 +1,23 @@
 // services/dataCache.js - Persistent Data Cache for Agent Memory
-
 export class DataCache {
     constructor(maxAgeMs = 24 * 60 * 60 * 1000) {
         this.maxAge = maxAgeMs;
         this.cacheKey = 'aurora_data_cache';
-        this.version = '1.0.0';
+        this.version = '2.0.0'; // Updated version
+        this.checkVersion();
+    }
+    
+    checkVersion() {
+        try {
+            const storedVersion = localStorage.getItem('aurora_cache_version');
+            if (storedVersion !== this.version) {
+                console.log('Cache version mismatch, clearing old cache');
+                this.clearCache();
+                localStorage.setItem('aurora_cache_version', this.version);
+            }
+        } catch (e) {
+            console.warn('Version check failed:', e);
+        }
     }
 
     saveData(dataType, data) {
@@ -30,10 +43,11 @@ export class DataCache {
             
             const parsed = JSON.parse(cached);
             // Check version compatibility
-            if (parsed._version && parsed._version !== this.version) {
-                console.log('Cache version mismatch, clearing');
-                this.clearCache();
-                return {};
+            for (const key in parsed) {
+                if (parsed[key] && parsed[key].version && parsed[key].version !== this.version) {
+                    console.log(`Cache entry ${key} version mismatch, invalidating`);
+                    delete parsed[key];
+                }
             }
             return parsed;
         } catch (e) {
