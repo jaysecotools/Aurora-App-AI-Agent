@@ -1,5 +1,5 @@
-Complete set of code as it is now. can you see why it doesn't run?
-
+You are a senior app designe, developer and bug fixer. Please fix my app code so it loads correctly after the page is refreshed. It works in private windows, but this is not acceptable. Please provide complete files of those that you fix, not patches. this tool needs to be production ready and deployable to use.
+Here are the files.
 // agent/spaceWeatherAgent.js - Aurora Monitoring Agent Core
 // This is the autonomous decision layer - PURE LOGIC, no UI dependencies
 
@@ -482,7 +482,7 @@ export class DataCache {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Aurora Tracker • AI Agent • Australian Space Weather</title>
+    <title>Aurora Tracker • AI Agent • Australian Space Weather</title> 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a1428">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -582,9 +582,9 @@ export class DataCache {
 
 <script type="module">
     // Import agent modules (ES modules now working)
-    import { SpaceWeatherAgent } from './agent/spaceWeatherAgent.js';
-    import { NotificationManager } from './notifications/manager.js';
-    import { DataCache } from './services/dataCache.js';
+    import { SpaceWeatherAgent } from '/agent/spaceWeatherAgent.js';
+    import { NotificationManager } from '/notifications/manager.js';
+    import { DataCache } from '/services/dataCache.js';
     
     let auroraAgent = null;
     let notificationManager = null;
@@ -965,6 +965,14 @@ export class DataCache {
         star.style.opacity = 0.3 + Math.random() * 0.6; 
         starsDiv.appendChild(star); 
     }
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registered', reg.scope))
+            .catch(err => console.warn('SW failed', err));
+    });
+}
     
     // Start the app
     init();
@@ -1068,39 +1076,33 @@ export class DataCache {
   "prefer_related_applications": false
 }
 
-// sw.js - Service Worker for Aurora Tracker PWA
-const CACHE_NAME = 'aurora-tracker-v2';
+// sw.js - Simple PWA Service Worker (NO aggressive caching)
+const CACHE_NAME = 'aurora-tracker-light-v1';
+
+// Only cache the absolute minimum needed for offline install
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-72x72.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png',
-  './icons/maskable-icon.png'
+  './manifest.json'
+  // Intentionally NOT caching index.html or any JS files
 ];
 
-// Install event - cache core assets
+// Install - minimal caching
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
+  console.log('[SW] Installing light version...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[SW] Caching app assets');
-        return cache.addAll(urlsToCache);
+        // Try to cache manifest, but don't fail if it doesn't work
+        return cache.addAll(urlsToCache).catch(err => {
+          console.log('[SW] Cache warning:', err);
+        });
       })
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
+// Activate - clean old caches and take control immediately
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
+  console.log('[SW] Activating light version...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -1111,74 +1113,48 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch event - serve from cache then network (stale-while-revalidate)
+// Fetch - DO NOT CACHE HTML or JS - always go to network
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests and external APIs
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('services.swpc.noaa.gov') ||
-      event.request.url.includes('bom.gov.au')) {
+  const url = event.request.url;
+  
+  // Don't cache anything - just let everything go to network
+  // This ensures you always get the latest version on refresh
+  
+  // For HTML pages, NEVER cache them
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Only fallback to cache if offline AND it's the main page
+        return caches.match('./index.html');
+      })
+    );
     return;
   }
   
+  // For everything else (images, etc.), try network first, then cache as fallback only
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        // Return cached version if available
-        if (cachedResponse) {
-          // Fetch in background to update cache
-          fetch(event.request)
-            .then(networkResponse => {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
-              });
-            })
-            .catch(() => {});
-          return cachedResponse;
-        }
-        
-        // Otherwise fetch from network
-        return fetch(event.request)
-          .then(response => {
-            // Cache valid responses
-            if (response && response.status === 200 && response.type === 'basic') {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            // Offline fallback for HTML pages
-            if (event.request.headers.get('accept').includes('text/html')) {
-              return caches.match('./index.html');
-            }
-          });
+    fetch(event.request)
+      .catch(() => {
+        // Only use cache if offline
+        return caches.match(event.request);
       })
   );
 });
 
-// Handle update messages
+// Simple message handler
 self.addEventListener('message', event => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
 });
 
-// Background sync for data refresh (optional)
-self.addEventListener('sync', event => {
-  if (event.tag === 'refresh-aurora-data') {
-    event.waitUntil(refreshAuroraData());
-  }
-});
+// Log that service worker is active
+console.log('[SW] Light service worker active - no aggressive caching');
 
-async function refreshAuroraData() {
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => {
-    client.postMessage({ type: 'REFRESH_DATA' });
-  });
-}
