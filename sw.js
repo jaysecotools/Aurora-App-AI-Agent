@@ -1,30 +1,27 @@
-// sw.js - Simple PWA Service Worker (NO aggressive caching)
-const CACHE_NAME = 'aurora-tracker-light-v1';
+// sw.js - Simple PWA Service Worker with proper caching
+const CACHE_NAME = 'aurora-tracker-v2';
 
-// Only cache the absolute minimum needed for offline install
+// Cache essential files for offline functionality
 const urlsToCache = [
+  './index.html',
   './manifest.json'
-  // Intentionally NOT caching index.html or any JS files
 ];
 
-// Install - minimal caching
+// Install - cache essential files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing light version...');
+  console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        // Try to cache manifest, but don't fail if it doesn't work
-        return cache.addAll(urlsToCache).catch(err => {
-          console.log('[SW] Cache warning:', err);
-        });
+        return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate - clean old caches and take control immediately
+// Activate - clean old caches and take control
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating light version...');
+  console.log('[SW] Activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -36,46 +33,75 @@ self.addEventListener('activate', event => {
         })
       );
     }).then(() => {
-      // Take control of all clients immediately
       return self.clients.claim();
     })
   );
 });
 
-// Fetch - DO NOT CACHE HTML or JS - always go to network
+// Fetch - network first, then cache
 self.addEventListener('fetch', event => {
   const url = event.request.url;
   
-  // Don't cache anything - just let everything go to network
-  // This ensures you always get the latest version on refresh
-  
-  // For HTML pages, NEVER cache them
+  // For navigation requests (HTML pages)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        // Only fallback to cache if offline AND it's the main page
-        return caches.match('./index.html');
-      })
+      fetch(event.request)
+        .then(response => {
+          // Cache the fresh response
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try cache
+          return caches.match(event.request)
+            .then(cachedResponse => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Fallback to index.html
+              return caches.match('./index.html');
+            });
+        })
     );
     return;
   }
   
-  // For everything else (images, etc.), try network first, then cache as fallback only
+  // For API requests - network only, no cache
+  if (url.includes('services.swpc.noaa.gov')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // For static assets - cache first, then network
   event.respondWith(
-    fetch(event.request)
-      .catch(() => {
-        // Only use cache if offline
-        return caches.match(event.request);
+    caches.match(event.request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request)
+          .then(response => {
+            // Cache successful responses for non-API requests
+            if (response.ok && !url.includes('services.swpc.noaa.gov')) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return response;
+          });
       })
   );
 });
 
-// Simple message handler
+// Handle messages
 self.addEventListener('message', event => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
 });
 
-// Log that service worker is active
-console.log('[SW] Light service worker active - no aggressive caching');
+console.log('[SW] Service worker active - network first strategy');
