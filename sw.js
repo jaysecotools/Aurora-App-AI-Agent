@@ -1,32 +1,22 @@
-// sw.js - PWA Service Worker with proper caching and update handling
-const CACHE_NAME = 'aurora-tracker-v3';
-const STATIC_CACHE = 'aurora-static-v3';
+// sw.js - PWA Service Worker for Aurora Tracker
+// Version v2.1 - Fixed caching strategy
 
-// Cache essential files for offline functionality
+const CACHE_NAME = 'aurora-tracker-v2-1';
+const STATIC_CACHE = 'aurora-static-v2-1';
+
+// Cache essential files - ONLY those that actually exist
+// Removed references to missing icon files to prevent console errors
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json',
-  // Icons
-  './icon-16x16.png',
-  './icon-32x32.png',
-  './icon-48x48.png',
-  './icon-64x64.png',
-  './icon-96x96.png',
-  './icon-128x128.png',
-  './icon-144x144.png',
-  './icon-152x152.png',
-  './icon-180x180.png',
-  './icon-192x192.png',
-  './icon-192x192-maskable.png',
-  './icon-384x384.png',
-  './icon-512x512.png',
-  './icon-512x512-maskable.png'
+  './manifest.json'
+  // Icons are optional - if they don't exist, don't cache them
+  // Add only the icons you actually have in your project
 ];
 
 // Install - cache essential files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing new version...');
+  console.log('[SW] Installing new version v2.1...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => {
@@ -39,7 +29,7 @@ self.addEventListener('install', event => {
 
 // Activate - clean old caches and take control
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
+  console.log('[SW] Activating v2.1...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -57,7 +47,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch - network first with cache fallback
+// Fetch - network first with cache fallback for HTML, cache first for assets
 self.addEventListener('fetch', event => {
   const url = event.request.url;
   const request = event.request;
@@ -93,37 +83,32 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // For API requests - network only, no cache (but with timeout)
+  // For NOAA API requests - network only, with timeout fallback
   if (url.includes('services.swpc.noaa.gov')) {
     event.respondWith(
-      Promise.race([
-        fetch(request),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 10000)
-        )
-      ]).catch(async () => {
-        // Return cached data if available
-        const cachedData = await caches.match(request);
-        if (cachedData) {
-          return cachedData;
-        }
-        throw new Error('No network and no cache for API');
-      })
+      fetch(request, { timeout: 10000 })
+        .catch(async () => {
+          // Return cached data if available
+          const cachedData = await caches.match(request);
+          if (cachedData) {
+            return cachedData;
+          }
+          // Return a synthetic response with stale data indicator
+          return new Response(JSON.stringify({ error: 'offline', cached: false }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
     );
     return;
   }
   
-  // For static assets and modules - cache first, then network
-  if (url.includes('/agent/') || 
-      url.includes('/notifications/') || 
-      url.includes('/services/') ||
-      url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico)$/)) {
-    
+  // For static assets - cache first, then network
+  if (url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|json)$/)) {
     event.respondWith(
       caches.match(request)
         .then(cachedResponse => {
           if (cachedResponse) {
-            // Return cached version, but update in background
+            // Return cached version, update in background
             fetch(request)
               .then(response => {
                 if (response && response.status === 200) {
@@ -132,7 +117,7 @@ self.addEventListener('fetch', event => {
                   });
                 }
               })
-              .catch(err => console.log('Background update failed:', err));
+              .catch(() => {});
             return cachedResponse;
           }
           return fetch(request)
@@ -176,4 +161,4 @@ self.addEventListener('message', event => {
   }
 });
 
-console.log('[SW] Service worker active - optimized caching strategy');
+console.log('[SW] Service worker v2.1 active');
