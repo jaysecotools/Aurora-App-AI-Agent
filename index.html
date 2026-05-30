@@ -99,13 +99,12 @@
     <div id="loading" class="loading" style="display: none;"><div style="width: 35px;height:35px;border:3px solid #ff8c42; border-top-color:transparent;border-radius:50%;margin:0 auto 0.8rem;animation: spin 0.8s linear infinite;"></div><div id="loadingMessage">Fetching space weather...</div></div>
     <div id="dataAlert" style="display: none; padding: 8px; border-radius: 16px; margin-bottom: 0.8rem; font-size:0.8rem;"></div>
     <div id="dashboardContent" style="display: none;"><div class="dashboard"><div class="main-panel"><div class="card kp-display"><div class="card-header"><div class="card-title">🌌 Geomagnetic Activity</div></div><div class="kp-value" id="kpValue">--</div><div id="kpDescription" style="text-align:center; font-size:0.8rem;">Loading...</div><div class="aurora-meter"><div class="meter-indicator" id="kpIndicator"></div></div><div class="data-grid"><div class="data-item"><div class="data-label">Visibility</div><div class="data-value" id="visibilityChance">--%</div></div><div class="data-item"><div class="data-label">Storm Level</div><div class="data-value" id="stormLevel">--</div></div><div class="data-item"><div class="data-label">Moon</div><div class="data-value" id="moonPhase">--</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">⭐ Viewing Score <span style="font-size:0.7rem;">(AI evaluated)</span></div></div><div class="viewing-score" id="viewingScore">--</div><div id="viewingAdvice" style="text-align:center; font-size:0.75rem;">Loading conditions...</div><div id="agentSummary" class="agent-summary">🤖 Agent initializing...</div><div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;"><div class="weather-badge"><span>☁️</span> <span id="cloudCover">--</span></div><div class="weather-badge"><span>🌙</span> <span id="moonDetail">--</span></div></div></div><div class="card"><div class="card-header"><div class="card-title">☀️ Solar Wind</div></div><div class="dial-container"><div class="dial"><div class="dial-title">Speed</div><div class="dial-circle"><div class="dial-center"><span id="speedValue">--</span></div></div><div style="font-size:0.6rem;">km/s</div></div><div class="dial"><div class="dial-title">Bz</div><div class="dial-circle"><div class="dial-center"><span id="bzValue">--</span></div></div><div style="font-size:0.6rem;">nT</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">🇦🇺 Your Region</div></div><div class="tab-container" id="locationTabs"><div class="tab active" data-loc="tasmania">TAS</div><div class="tab" data-loc="victoria">VIC</div><div class="tab" data-loc="south-aus">SA</div><div class="tab" data-loc="west-aus">WA</div><div class="tab" data-loc="nsw">NSW</div></div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast</div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;">Primary: NOAA / BOM fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span></div></div></div></div></div>
-<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.0 • Agent v1.1</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use location</span></div></div>
+<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.1 • Agent v1.1</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use location</span></div></div>
 
 <script>
 // ============================================================
-// AURORA TRACKER - COMPLETE FIXED VERSION
-// All code self-contained - NO external module imports
-// Version 2.1 - Fixed initialization and state management
+// AURORA TRACKER - COMPLETE FIXED VERSION v2.1.1
+// Fixed: timestamp.getHours error, icon handling
 // ============================================================
 
 (function() {
@@ -290,8 +289,8 @@
             try {
                 const notification = new Notification(title, { 
                     body: body, 
-                    icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAqUlEQVR4Xu3QAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAvwMJxgABmT4lZgAAAABJRU5ErkJggg==',
-                    badge: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAABgElEQVR4Xu3TAQ0AAAgDoHX7nwcdwQ0MkCqQvzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8GxTWAAHhqFlZAAAAAElFTkSuQmCC',
+                    icon: './icons/icon-192x192.png',  // Use relative path to your icons folder
+                    badge: './icons/icon-96x96.png',
                     vibrate: [200, 100, 200], 
                     silent: false, 
                     requireInteraction: options.requireInteraction || false, 
@@ -304,7 +303,10 @@
                     if (options.onClick) options.onClick(); 
                 };
                 return true;
-            } catch(e) { return false; }
+            } catch(e) { 
+                console.warn('Notification failed:', e);
+                return false; 
+            }
         }
         
         processPending() { 
@@ -346,7 +348,7 @@
         constructor(maxAgeMs = 24 * 60 * 60 * 1000) { 
             this.maxAge = maxAgeMs; 
             this.cacheKey = 'aurora_data_cache_v2';  // Changed key to avoid conflicts
-            this.version = '2.1.0'; 
+            this.version = '2.1.1'; 
             this.checkVersion(); 
         }
         
@@ -491,6 +493,21 @@
         percent = Math.min(92, Math.max(8, percent));
         let coverage = percent < 25 ? 'Clear' : (percent < 55 ? 'Partly cloudy' : (percent < 80 ? 'Cloudy' : 'Overcast'));
         return { coverage: `${coverage} (${Math.round(percent)}%)`, percent };
+    }
+
+    // Helper function to safely get hour from timestamp
+    function getHourFromTimestamp(timestamp) {
+        if (timestamp instanceof Date) {
+            return timestamp.getHours();
+        }
+        if (typeof timestamp === 'string') {
+            return new Date(timestamp).getHours();
+        }
+        if (typeof timestamp === 'number') {
+            return new Date(timestamp).getHours();
+        }
+        // Fallback: create a new date
+        return new Date().getHours();
     }
 
     async function fetchNOAAData() {
@@ -689,7 +706,23 @@
             list = [ { label: 'Today', kp: forecastData?.peakToday || 3.5 }, { label: 'Tomorrow', kp: forecastData?.peakTomorrow || 4.0 }, { label: 'Day 3', kp: (forecastData?.peakTomorrow || 4.0) - 0.3 } ];
         } else {
             if (forecastData?.allForecasts && forecastData.allForecasts.length) {
-                list = forecastData.allForecasts.slice(0, 8).map(f => ({ label: f.timestamp.getHours() + 'h', kp: f.kp }));
+                // FIXED: Safely get hour from timestamp that could be Date object, string, or number
+                list = forecastData.allForecasts.slice(0, 8).map(f => {
+                    let hour;
+                    if (f.timestamp instanceof Date) {
+                        hour = f.timestamp.getHours();
+                    } else if (typeof f.timestamp === 'object' && f.timestamp.getHours) {
+                        hour = f.timestamp.getHours();
+                    } else {
+                        // Try to convert to Date
+                        try {
+                            hour = new Date(f.timestamp).getHours();
+                        } catch(e) {
+                            hour = new Date().getHours();
+                        }
+                    }
+                    return { label: hour + 'h', kp: f.kp };
+                });
             } else {
                 for (let i = 1; i <= 8; i++) list.push({ label: ((new Date().getHours() + i * 3) % 24) + 'h', kp: 3.5 });
             }
@@ -840,7 +873,7 @@
     }
 
     async function init() {
-        console.log('Initializing Aurora Tracker v2.1...');
+        console.log('Initializing Aurora Tracker v2.1.1...');
         
         // Initialize DOM elements
         initDOMElements();
