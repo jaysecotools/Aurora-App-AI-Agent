@@ -1,27 +1,38 @@
 // sw.js - PWA Service Worker for Aurora Tracker
-// Version v2.1 - Fixed caching strategy
+// Version v2.1.1 - Fixed for v2.1.1 app
 
-const CACHE_NAME = 'aurora-tracker-v2-1';
-const STATIC_CACHE = 'aurora-static-v2-1';
+const CACHE_NAME = 'aurora-tracker-v2-1-1';
+const STATIC_CACHE = 'aurora-static-v2-1-1';
 
-// Cache essential files - ONLY those that actually exist
-// Removed references to missing icon files to prevent console errors
+// Cache essential files - use relative paths that work with your icons folder
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
-  // Icons are optional - if they don't exist, don't cache them
-  // Add only the icons you actually have in your project
+  './manifest.json',
+  './icons/icon-48x48.png',
+  './icons/icon-64x64.png',
+  './icons/icon-96x96.png',
+  './icons/icon-128x128.png',
+  './icons/icon-144x144.png',
+  './icons/icon-152x152.png',
+  './icons/icon-192x192.png',
+  './icons/icon-192x192-maskable.png',
+  './icons/icon-384x384.png',
+  './icons/icon-512x512.png',
+  './icons/icon-512x512-maskable.png'
 ];
 
 // Install - cache essential files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing new version v2.1...');
+  console.log('[SW] Installing new version v2.1.1...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => {
         console.log('[SW] Caching static assets');
-        return cache.addAll(urlsToCache);
+        // Use addAll with catch for each to handle missing files gracefully
+        return Promise.allSettled(
+          urlsToCache.map(url => cache.add(url).catch(e => console.warn(`Failed to cache ${url}:`, e)))
+        );
       })
       .then(() => self.skipWaiting())
   );
@@ -29,7 +40,7 @@ self.addEventListener('install', event => {
 
 // Activate - clean old caches and take control
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating v2.1...');
+  console.log('[SW] Activating v2.1.1...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -161,4 +172,4 @@ self.addEventListener('message', event => {
   }
 });
 
-console.log('[SW] Service worker v2.1 active');
+console.log('[SW] Service worker v2.1.1 active');
