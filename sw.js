@@ -1,35 +1,20 @@
-// sw.js - PWA Service Worker for Aurora Tracker
-// Version v2.1.1 - Fixed for v2.1.1 app
+// sw.js - PWA Service Worker for Aurora Tracker v2.2
+const CACHE_NAME = 'aurora-tracker-v2-2-0';
+const STATIC_CACHE = 'aurora-static-v2-2-0';
 
-const CACHE_NAME = 'aurora-tracker-v2-1-1';
-const STATIC_CACHE = 'aurora-static-v2-1-1';
-
-// Cache essential files - use relative paths that work with your icons folder
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-48x48.png',
-  './icons/icon-64x64.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-192x192-maskable.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png',
-  './icons/icon-512x512-maskable.png'
+  './manifest.json'
 ];
 
-// Install - cache essential files
+// Install
 self.addEventListener('install', event => {
-  console.log('[SW] Installing new version v2.1.1...');
+  console.log('[SW] Installing v2.2...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => {
         console.log('[SW] Caching static assets');
-        // Use addAll with catch for each to handle missing files gracefully
         return Promise.allSettled(
           urlsToCache.map(url => cache.add(url).catch(e => console.warn(`Failed to cache ${url}:`, e)))
         );
@@ -38,43 +23,41 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate - clean old caches and take control
+// Activate
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating v2.1.1...');
+  console.log('[SW] Activating v2.2...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
-          if (cache !== STATIC_CACHE && cache !== CACHE_NAME) {
+          if (cache !== STATIC_CACHE && cache !== CACHE_NAME && cache !== 'aurora-data-cache') {
             console.log('[SW] Deleting old cache:', cache);
             return caches.delete(cache);
           }
         })
       );
     }).then(() => {
-      console.log('[SW] Now claiming clients');
+      console.log('[SW] Claiming clients');
       return self.clients.claim();
     })
   );
 });
 
-// Fetch - network first with cache fallback for HTML, cache first for assets
+// Fetch
 self.addEventListener('fetch', event => {
   const url = event.request.url;
   const request = event.request;
   
-  // Skip non-GET requests
   if (request.method !== 'GET') {
     event.respondWith(fetch(request));
     return;
   }
   
-  // For navigation requests (HTML pages)
+  // HTML navigation - network first
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // Cache the fresh response
           const responseClone = response.clone();
           caches.open(STATIC_CACHE).then(cache => {
             cache.put(request, responseClone);
@@ -82,30 +65,22 @@ self.addEventListener('fetch', event => {
           return response;
         })
         .catch(async () => {
-          // If network fails, try cache
           const cachedResponse = await caches.match(request);
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Fallback to index.html
+          if (cachedResponse) return cachedResponse;
           return caches.match('./index.html');
         })
     );
     return;
   }
   
-  // For NOAA API requests - network only, with timeout fallback
+  // API requests - network only, 10s timeout
   if (url.includes('services.swpc.noaa.gov')) {
     event.respondWith(
       fetch(request, { timeout: 10000 })
         .catch(async () => {
-          // Return cached data if available
           const cachedData = await caches.match(request);
-          if (cachedData) {
-            return cachedData;
-          }
-          // Return a synthetic response with stale data indicator
-          return new Response(JSON.stringify({ error: 'offline', cached: false }), {
+          if (cachedData) return cachedData;
+          return new Response(JSON.stringify({ error: 'offline' }), {
             headers: { 'Content-Type': 'application/json' }
           });
         })
@@ -113,48 +88,38 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // For static assets - cache first, then network
+  // Static assets - cache first
   if (url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|json)$/)) {
     event.respondWith(
       caches.match(request)
         .then(cachedResponse => {
           if (cachedResponse) {
-            // Return cached version, update in background
-            fetch(request)
-              .then(response => {
-                if (response && response.status === 200) {
-                  caches.open(STATIC_CACHE).then(cache => {
-                    cache.put(request, response);
-                  });
-                }
-              })
-              .catch(() => {});
+            fetch(request).then(response => {
+              if (response && response.status === 200) {
+                caches.open(STATIC_CACHE).then(cache => cache.put(request, response));
+              }
+            }).catch(() => {});
             return cachedResponse;
           }
-          return fetch(request)
-            .then(response => {
-              if (response && response.status === 200) {
-                const responseClone = response.clone();
-                caches.open(STATIC_CACHE).then(cache => {
-                  cache.put(request, responseClone);
-                });
-              }
-              return response;
-            });
+          return fetch(request).then(response => {
+            if (response && response.status === 200) {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone));
+            }
+            return response;
+          });
         })
     );
     return;
   }
   
-  // Default: network first, cache fallback
+  // Default - network first
   event.respondWith(
     fetch(request)
       .then(response => {
         if (response && response.status === 200) {
           const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseClone);
-          });
+          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
         }
         return response;
       })
@@ -162,14 +127,10 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Handle messages from clients
 self.addEventListener('message', event => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
-  if (event.data.action === 'getVersion') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
-  }
 });
 
-console.log('[SW] Service worker v2.1.1 active');
+console.log('[SW] Service Worker v2.2 active');
