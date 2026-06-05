@@ -1,7 +1,7 @@
 {
   "name": "Aurora Tracker - Australian Space Weather",
   "short_name": "Aurora Tracker",
-  "description": "Real-time aurora australis tracking for Australia using NOAA data",
+  "description": "Real-time aurora australis tracking for Australia using BOM/NOAA data",
   "start_url": "./index.html",
   "display": "standalone",
   "theme_color": "#0a1428",
