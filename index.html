@@ -114,6 +114,7 @@
         .gps-badge { display: inline-block; background: rgba(79, 195, 247, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.6rem; color: #4fc3f7; margin-left: 6px; }
         .forecast-accuracy { font-size: 0.65rem; color: #00ffaa; text-align: center; margin-top: 4px; }
         .bom-forecast-badge { display: inline-block; background: rgba(255,140,66,0.2); padding: 2px 10px; border-radius: 12px; font-size: 0.6rem; color: #ff8c42; margin-left: 6px; }
+        .cors-notice { font-size: 0.6rem; color: #ffaa66; text-align: center; margin-top: 2px; display: none; }
     </style>
 </head>
 <body class="simple-view">
@@ -161,13 +162,20 @@
         <div class="tab" data-loc="west-aus">WA</div>
         <div class="tab" data-loc="nsw">NSW</div>
         <div class="tab my-location-tab" data-loc="my-location" id="myLocationTab" style="display:none;">📍 My Location</div>
-    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast <span class="bom-forecast-badge" id="forecastBadge">📊 BOM Real</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast source: <span id="forecastSourceLabel">BOM Space Weather</span></div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span id="forecastSourceStatus">📊 Forecast: <span id="forecastStatusText">--</span></span></div></div></div></div></div>
-<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.5 • BOM + NOAA + WeatherAPI.com + Real Forecasts</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
+    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast <span class="bom-forecast-badge" id="forecastBadge">📊 BOM Real</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast source: <span id="forecastSourceLabel">BOM Space Weather</span></div><div class="cors-notice" id="corsNotice">⚠️ Using CORS proxy for BOM API</div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span id="forecastSourceStatus">📊 Forecast: <span id="forecastStatusText">--</span></span></div></div></div></div></div>
+<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.6 • BOM + NOAA + WeatherAPI.com + Real Forecasts</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
 
 <script>
 (function() {
     'use strict';
 
+    // ==================== CORS PROXY ====================
+    // Using a free CORS proxy service to bypass BOM API CORS restrictions
+    // If this proxy stops working, you can replace it with:
+    // - 'https://corsproxy.io/?' (another free option)
+    // - Your own Netlify function (recommended for production)
+    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    
     // ==================== API KEY MANAGEMENT ====================
     function getWeatherApiKey() {
         try { return localStorage.getItem('weather_api_key') || ''; } catch(e) { return ''; }
@@ -443,7 +451,7 @@
         constructor(maxAgeMs = 24 * 60 * 60 * 1000) { 
             this.maxAge = maxAgeMs; 
             this.cacheKey = 'aurora_data_cache_v3'; 
-            this.version = '2.5.0'; 
+            this.version = '2.6.0'; 
             this.checkVersion(); 
         }
         
@@ -522,111 +530,41 @@
         }
     }
 
-    // ==================== BOM FORECAST API (REAL 3-DAY FORECAST) ====================
-    async function fetchBomForecast() {
-        const bomApiKey = getBomApiKey();
-        if (!bomApiKey) {
-            console.warn('No BOM API key found - using estimated forecast');
-            return null;
-        }
+    // ==================== BOM API (via CORS Proxy) ====================
+    async function fetchBomKIndex(apiKey) {
+        const url = 'https://sws-data.sws.bom.gov.au/api/v1/get-k-index';
+        const proxiedUrl = CORS_PROXY + encodeURIComponent(url);
         
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            
-            // BOM Space Weather API - Aurora Outlook endpoint
-            // Using the correct endpoint format from BOM documentation
-            const url = `https://sws-data.sws.bom.gov.au/api/v1/get-aurora-outlook`;
-            
-            const response = await fetch(url, {
+            const response = await fetch(proxiedUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    api_key: bomApiKey,
-                    format: 'json'
-                }),
-                signal: controller.signal
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: apiKey, format: 'json' })
             });
             
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                console.warn('BOM forecast API error:', response.status);
-                return null;
-            }
-            
-            const data = await response.json();
-            console.log('✅ BOM Forecast API data received:', data);
-            
-            // Parse BOM forecast data
-            // The BOM API returns aurora outlook with Kp forecasts
-            if (data && data.data) {
-                const outlookData = data.data;
-                
-                // Extract forecast periods
-                let forecastPeriods = [];
-                
-                // BOM typically returns forecasts for 3-day periods
-                if (outlookData.forecast && Array.isArray(outlookData.forecast)) {
-                    forecastPeriods = outlookData.forecast.map(period => ({
-                        timestamp: period.time || period.datetime || new Date().toISOString(),
-                        kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
-                        label: period.label || period.period || ''
-                    }));
-                } else if (outlookData.aurora_outlook && Array.isArray(outlookData.aurora_outlook)) {
-                    forecastPeriods = outlookData.aurora_outlook.map(period => ({
-                        timestamp: period.time || period.datetime || new Date().toISOString(),
-                        kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
-                        label: period.label || period.period || ''
-                    }));
-                } else if (outlookData.kp_forecast && Array.isArray(outlookData.kp_forecast)) {
-                    forecastPeriods = outlookData.kp_forecast.map(period => ({
-                        timestamp: period.time || period.datetime || new Date().toISOString(),
-                        kp: parseFloat(period.value) || parseFloat(period.kp) || 3.0,
-                        label: period.label || period.period || ''
-                    }));
-                }
-                
-                // If we have forecast periods, use them
-                if (forecastPeriods.length > 0) {
-                    return {
-                        periods: forecastPeriods,
-                        source: 'BOM Space Weather',
-                        timestamp: Date.now(),
-                        valid: true
-                    };
-                }
-                
-                // Try to extract from other formats
-                if (outlookData.kp_index_forecast) {
-                    const periods = [];
-                    const forecastObj = outlookData.kp_index_forecast;
-                    for (const [key, value] of Object.entries(forecastObj)) {
-                        periods.push({
-                            timestamp: key,
-                            kp: parseFloat(value) || 3.0,
-                            label: key
-                        });
-                    }
-                    if (periods.length > 0) {
-                        return {
-                            periods: periods,
-                            source: 'BOM Space Weather',
-                            timestamp: Date.now(),
-                            valid: true
-                        };
-                    }
-                }
-            }
-            
-            console.warn('Could not parse BOM forecast data, using fallback');
-            return null;
-            
+            if (!response.ok) return null;
+            return await response.json();
         } catch (e) {
-            console.warn('BOM forecast fetch failed:', e.message);
+            console.warn('BOM K-index via proxy failed:', e.message);
+            return null;
+        }
+    }
+
+    async function fetchBomForecast(apiKey) {
+        const url = 'https://sws-data.sws.bom.gov.au/api/v1/get-aurora-outlook';
+        const proxiedUrl = CORS_PROXY + encodeURIComponent(url);
+        
+        try {
+            const response = await fetch(proxiedUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: apiKey, format: 'json' })
+            });
+            
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (e) {
+            console.warn('BOM forecast via proxy failed:', e.message);
             return null;
         }
     }
@@ -700,39 +638,25 @@
             let bz = -2;
             let speed = 400;
             let sourceLabel = 'NOAA';
+            let usedProxy = false;
             
-            // Try BOM API first if key is available
+            // Try BOM API first if key is available (via CORS proxy)
             if (source === 'bom' && bomApiKey) {
                 try {
-                    const bomResponse = await fetch('https://sws-data.sws.bom.gov.au/api/v1/get-k-index', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ 
-                            api_key: bomApiKey,
-                            format: 'json'
-                        }),
-                        signal: controller.signal
-                    });
-                    
-                    if (bomResponse.ok) {
-                        const bomData = await bomResponse.json();
-                        if (bomData.data && bomData.data.k_index) {
-                            const kIndexData = bomData.data.k_index;
-                            // Get the latest K index value
-                            if (Array.isArray(kIndexData) && kIndexData.length > 0) {
-                                const latest = kIndexData[kIndexData.length - 1];
-                                kp = parseFloat(latest.value) || 3.2;
-                            } else if (kIndexData.value) {
-                                kp = parseFloat(kIndexData.value) || 3.2;
-                            }
-                            sourceLabel = 'BOM (Australian Bureau of Meteorology)';
-                            console.log('✅ BOM API K-index data received:', kp);
+                    const bomData = await fetchBomKIndex(bomApiKey);
+                    if (bomData && bomData.data && bomData.data.k_index) {
+                        const kIndexData = bomData.data.k_index;
+                        if (Array.isArray(kIndexData) && kIndexData.length > 0) {
+                            const latest = kIndexData[kIndexData.length - 1];
+                            kp = parseFloat(latest.value) || 3.2;
+                        } else if (kIndexData.value) {
+                            kp = parseFloat(kIndexData.value) || 3.2;
                         }
+                        sourceLabel = 'BOM (via CORS proxy)';
+                        usedProxy = true;
+                        console.log('✅ BOM K-index via proxy:', kp);
                     } else {
-                        console.warn('BOM API error:', bomResponse.status, 'falling back to NOAA');
+                        console.warn('BOM API returned no data, falling back to NOAA');
                     }
                 } catch (bomError) {
                     console.warn('BOM API fetch failed:', bomError.message, 'falling back to NOAA');
@@ -780,6 +704,12 @@
                 else sourceLabel = 'NOAA (Space Weather Prediction Center)';
             }
             
+            // Show CORS notice if proxy was used
+            const corsNotice = document.getElementById('corsNotice');
+            if (corsNotice) {
+                corsNotice.style.display = usedProxy ? 'block' : 'none';
+            }
+            
             clearTimeout(timeoutId);
             
             // Generate forecast - BUT we'll override with BOM real forecast if available
@@ -800,7 +730,8 @@
                 solar: { speed: Math.round(speed), bz: parseFloat(bz.toFixed(1)) }, 
                 forecast: { allForecasts, peakToday, peakTomorrow }, 
                 source: sourceLabel, 
-                latency: Date.now() - start 
+                latency: Date.now() - start,
+                usedProxy: usedProxy
             };
         } catch (e) { 
             console.error(`${source} fetch error:`, e);
@@ -821,6 +752,7 @@
     let currentInterval = '3h';
     let currentDataSource = 'bom';
     let forecastSource = 'estimated';
+    let usedProxy = false;
 
     // DOM Elements
     let dashboard, loadingDiv, dataStatusSpan, kpSpan, kpDesc, kpIndicator, visibilitySpan;
@@ -918,23 +850,45 @@
             // Fetch space weather data
             let data = await fetchSpaceWeatherData(currentDataSource);
             currentData = data;
+            usedProxy = data.usedProxy || false;
             
-            // Fetch BOM REAL FORECAST if API key is available
+            // Fetch BOM REAL FORECAST if API key is available (via CORS proxy)
             const bomApiKey = getBomApiKey();
             if (bomApiKey) {
                 try {
-                    const bomForecast = await fetchBomForecast();
-                    if (bomForecast && bomForecast.valid && bomForecast.periods && bomForecast.periods.length > 0) {
+                    const bomForecast = await fetchBomForecast(bomApiKey);
+                    if (bomForecast && bomForecast.data) {
                         bomForecastData = bomForecast;
                         forecastSource = 'bom';
-                        console.log('✅ BOM REAL FORECAST received:', bomForecast.periods.length, 'periods');
+                        console.log('✅ BOM REAL FORECAST via proxy received');
                         
-                        // Update forecast data with BOM real forecast
-                        if (bomForecast.periods) {
-                            // Convert BOM forecast periods to our format
-                            const allForecasts = bomForecast.periods.map((period, index) => {
+                        // Try to parse forecast data from BOM response
+                        let forecastPeriods = [];
+                        const outlookData = bomForecast.data;
+                        
+                        if (outlookData.forecast && Array.isArray(outlookData.forecast)) {
+                            forecastPeriods = outlookData.forecast.map(period => ({
+                                timestamp: period.time || period.datetime || new Date().toISOString(),
+                                kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
+                                label: period.label || period.period || ''
+                            }));
+                        } else if (outlookData.aurora_outlook && Array.isArray(outlookData.aurora_outlook)) {
+                            forecastPeriods = outlookData.aurora_outlook.map(period => ({
+                                timestamp: period.time || period.datetime || new Date().toISOString(),
+                                kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
+                                label: period.label || period.period || ''
+                            }));
+                        } else if (outlookData.kp_forecast && Array.isArray(outlookData.kp_forecast)) {
+                            forecastPeriods = outlookData.kp_forecast.map(period => ({
+                                timestamp: period.time || period.datetime || new Date().toISOString(),
+                                kp: parseFloat(period.value) || parseFloat(period.kp) || 3.0,
+                                label: period.label || period.period || ''
+                            }));
+                        }
+                        
+                        if (forecastPeriods.length > 0) {
+                            const allForecasts = forecastPeriods.map((period, index) => {
                                 let timestamp = period.timestamp;
-                                // If timestamp is a date string, use it; otherwise create one
                                 if (!timestamp || timestamp === '') {
                                     const now = new Date();
                                     timestamp = new Date(now.getTime() + (index + 1) * 3 * 60 * 60 * 1000).toISOString();
@@ -945,7 +899,6 @@
                                 };
                             });
                             
-                            // Calculate peaks from BOM forecast
                             const peakToday = allForecasts.length > 0 ? Math.max(...allForecasts.slice(0, 4).map(f => f.kp)) : data.forecast.peakToday;
                             const peakTomorrow = allForecasts.length > 4 ? Math.max(...allForecasts.slice(4, 8).map(f => f.kp)) : data.forecast.peakTomorrow;
                             
@@ -954,30 +907,37 @@
                                 peakToday: peakToday,
                                 peakTomorrow: peakTomorrow
                             };
-                        }
-                        
-                        if (forecastSourceLabel) forecastSourceLabel.innerText = 'BOM Space Weather (Real)';
-                        if (forecastStatusText) {
-                            forecastStatusText.innerText = '✅ BOM Real Forecast';
-                            forecastStatusText.style.color = '#00ffaa';
-                        }
-                        if (document.getElementById('forecastBadge')) {
-                            document.getElementById('forecastBadge').innerHTML = '📊 BOM Real';
-                            document.getElementById('forecastBadge').style.background = 'rgba(0,255,170,0.2)';
-                            document.getElementById('forecastBadge').style.color = '#00ffaa';
+                            
+                            if (forecastSourceLabel) forecastSourceLabel.innerText = 'BOM Space Weather (Real)';
+                            if (forecastStatusText) {
+                                forecastStatusText.innerText = '✅ BOM Real Forecast';
+                                forecastStatusText.style.color = '#00ffaa';
+                            }
+                            if (document.getElementById('forecastBadge')) {
+                                document.getElementById('forecastBadge').innerHTML = '📊 BOM Real';
+                                document.getElementById('forecastBadge').style.background = 'rgba(0,255,170,0.2)';
+                                document.getElementById('forecastBadge').style.color = '#00ffaa';
+                            }
+                        } else {
+                            forecastSource = 'estimated';
+                            if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM data unavailable)';
+                            if (forecastStatusText) {
+                                forecastStatusText.innerText = '⚠️ Estimated';
+                                forecastStatusText.style.color = '#ffaa66';
+                            }
                         }
                     } else {
                         forecastSource = 'estimated';
-                        if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (using BOM as fallback)';
+                        if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM unavailable)';
                         if (forecastStatusText) {
                             forecastStatusText.innerText = '⚠️ Estimated';
-                            forecastStatusText.style.color = '#ffaa66';
+                            forecastStatusText.style.color = '#ff8866';
                         }
                     }
                 } catch (forecastError) {
                     console.warn('BOM forecast fetch failed:', forecastError);
                     forecastSource = 'estimated';
-                    if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM unavailable)';
+                    if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM error)';
                     if (forecastStatusText) {
                         forecastStatusText.innerText = '⚠️ Estimated';
                         forecastStatusText.style.color = '#ff8866';
@@ -1054,7 +1014,8 @@
             if (dashboard) dashboard.style.display = 'block';
             
             const forecastMsg = forecastSource === 'bom' ? ' with BOM real forecast' : ' (forecast estimated)';
-            showAlert('success', `${data.source} data updated in ${data.latency}ms${forecastMsg}`);
+            const proxyMsg = usedProxy ? ' (via CORS proxy)' : '';
+            showAlert('success', `${data.source} data updated in ${data.latency}ms${forecastMsg}${proxyMsg}`);
             
         } catch (err) {
             console.error('Fetch error:', err);
@@ -1249,7 +1210,7 @@
                 for (let i = 1; i <= 8; i++) list.push({ label: ((new Date().getHours() + i * 3) % 24) + 'h', kp: 3.5 });
             }
         }
-        const isBomForecast = forecastSource === 'bom' && bomForecastData && bomForecastData.valid;
+        const isBomForecast = forecastSource === 'bom' && bomForecastData && bomForecastData.data;
         list.forEach(item => { 
             const div = document.createElement('div'); 
             div.className = 'forecast-bar-container'; 
@@ -1259,11 +1220,10 @@
             container.appendChild(div); 
         });
         
-        // Add indicator of forecast source
         if (isBomForecast) {
             const note = document.createElement('div');
             note.style.cssText = 'grid-column: 1 / -1; text-align: center; font-size: 0.6rem; color: #00ffaa; margin-top: 4px;';
-            note.innerText = '📊 BOM Real Forecast Data';
+            note.innerText = '📊 BOM Real Forecast Data' + (usedProxy ? ' (via CORS proxy)' : '');
             container.appendChild(note);
         }
     }
@@ -1449,13 +1409,13 @@
             saveBomKeyBtn.onclick = () => {
                 const key = bomApiKeyInput.value.trim();
                 if (key && key.length > 0) {
-                    setBomKey(key);
+                    setBomApiKey(key);
                     if (bomKeyStatus) {
                         bomKeyStatus.innerText = '✅ Saved!';
                         bomKeyStatus.className = 'status-badge active';
                     }
                     bomApiKeyInput.value = '••••••••';
-                    showAlert('success', 'BOM API Key saved! Real forecasts enabled.');
+                    showAlert('success', 'BOM API Key saved! Real forecasts enabled via CORS proxy.');
                     fetchData();
                 } else {
                     showAlert('warning', 'Please enter a valid BOM API key');
@@ -1562,7 +1522,7 @@
     }
 
     async function init() {
-        console.log('🚀 Initializing Aurora Tracker v2.5 with REAL BOM Forecasts...');
+        console.log('🚀 Initializing Aurora Tracker v2.6 with CORS Proxy for BOM...');
         
         initDOMElements();
         
@@ -1620,10 +1580,11 @@
         
         registerServiceWorker();
         
-        console.log('✅ Aurora Tracker v2.5 initialized successfully');
-        console.log('📊 Forecast source:', forecastSource === 'bom' ? 'BOM REAL' : 'Estimated (fallback)');
+        console.log('✅ Aurora Tracker v2.6 initialized successfully');
+        console.log('📊 Forecast source:', forecastSource === 'bom' ? 'BOM REAL (via CORS proxy)' : 'Estimated (fallback)');
         console.log('📍 Penguin, TAS coordinates: -41.1234, 146.0732');
         console.log('📍 GPS support enabled - click "My Location" for exact weather');
+        console.log('🔄 CORS Proxy enabled for BOM API: ' + CORS_PROXY);
     }
 
     if (document.readyState === 'loading') {
