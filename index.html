@@ -11,27 +11,25 @@
     <meta name="apple-mobile-web-app-title" content="Aurora Tracker">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
-        :root { --aurora-green: #00ffaa; --aurora-blue: #00d2ff; --aurora-purple: #aa66ff; --bg-dark: #0a1428; --bg-darker: #030617; --card-bg: rgba(12, 22, 40, 0.85); --bom-orange: #ff8c42; --noaa-blue: #3b82f6; --glass-border: rgba(255, 255, 255, 0.12); }
+        :root { --aurora-green: #00ffaa; --aurora-blue: #00d2ff; --aurora-purple: #aa66ff; --bg-dark: #0a1428; --bg-darker: #030617; --card-bg: rgba(12, 22, 40, 0.85); --noaa-blue: #3b82f6; --glass-border: rgba(255, 255, 255, 0.12); }
         body { background: radial-gradient(ellipse at 30% 40%, #0b1120, #010101); color: #f0f3fa; min-height: 100vh; padding: 12px; }
         .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; }
         .twinkle { animation: twinkle 2.5s infinite ease-in-out; }
         @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.9; } }
         .container { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; padding: 0 4px; }
-        .data-status { position: fixed; top: 12px; right: 12px; padding: 6px 14px; border-radius: 60px; font-weight: 600; font-size: 0.7rem; backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(255, 140, 66, 0.5); z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .data-status { position: fixed; top: 12px; right: 12px; padding: 6px 14px; border-radius: 60px; font-weight: 600; font-size: 0.7rem; backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(59, 130, 246, 0.5); z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .status-live { color: #00ffaa; border-color: #00ffaa; }
-        .status-bom { color: var(--bom-orange); border-color: var(--bom-orange);}
         .status-noaa { color: var(--noaa-blue); border-color: var(--noaa-blue);}
         .status-weather { color: #4fc3f7; border-color: #4fc3f7; }
         .status-loading { color: #ffb347; animation: pulse 1.2s infinite;}
         .status-agent { color: #aa66ff; border-color: #aa66ff; background: rgba(170,102,255,0.2);}
-        .status-forecast { color: #00ffaa; border-color: #00ffaa; background: rgba(0,255,170,0.1); }
         header { text-align: center; padding: 1rem 0 0.5rem; }
-        h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--bom-orange), var(--aurora-green), #aaffff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        h1 { font-size: 1.8rem; background: linear-gradient(135deg, #3b82f6, var(--aurora-green), #aaffff); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .subtitle { color: #b9d0ff; font-size: 0.8rem; margin-top: 0.2rem; }
         .view-toggle { display: flex; justify-content: center; gap: 10px; margin: 0.8rem 0 1rem; }
-        .view-btn { padding: 6px 18px; border-radius: 40px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,140,66,0.3); color: #ccc; cursor: pointer; transition: 0.2s; font-weight: 500; font-size: 0.85rem; }
-        .view-btn.active { background: var(--bom-orange); color: #0a0a1a; border-color: var(--bom-orange); }
+        .view-btn { padding: 6px 18px; border-radius: 40px; background: rgba(255,255,255,0.08); border: 1px solid rgba(59,130,246,0.3); color: #ccc; cursor: pointer; transition: 0.2s; font-weight: 500; font-size: 0.85rem; }
+        .view-btn.active { background: var(--noaa-blue); color: #0a0a1a; border-color: var(--noaa-blue); }
         body.simple-view .detailed-card { display: none !important; }
         body.simple-view .sidebar { display: none !important; }
         body.simple-view .main-panel { grid-template-columns: 1fr; }
@@ -41,7 +39,7 @@
         .main-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; align-items: start; }
         .sidebar { display: flex; flex-direction: column; gap: 1rem; }
         .card { background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 24px; padding: 1rem; border: 1px solid var(--glass-border); }
-        .card-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid rgba(255,140,66,0.25); padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
+        .card-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid rgba(59,130,246,0.25); padding-bottom: 0.5rem; margin-bottom: 0.8rem; }
         .card-title { font-weight: 600; font-size: 1rem; color: var(--aurora-blue); display: flex; gap: 6px; align-items: center; }
         .kp-value { font-size: 3rem; font-weight: 800; background: linear-gradient(120deg, #ffb347, #00ffaa); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center; }
         .aurora-meter { height: 28px; background: linear-gradient(90deg, #112244, #2a6f9c, #5bc0ff, #b0ffaa, #ffaa66); border-radius: 40px; margin: 0.6rem 0; position: relative; }
@@ -58,22 +56,19 @@
         .viewing-score { font-size: 1.6rem; font-weight: bold; text-align: center; margin: 0.4rem 0; }
         .agent-summary { font-size: 0.85rem; text-align: center; padding: 8px; background: rgba(170,102,255,0.1); border-radius: 16px; margin: 8px 0; border-left: 3px solid #aa66ff; }
         .agent-recommendation { font-size: 0.8rem; padding: 6px 0; color: #ffcc88; }
-        .tasmania-dropdown { margin-top: 0.8rem; border-radius: 18px; background: rgba(255, 100, 30, 0.08); border: 1px solid rgba(255,140,66,0.4); overflow: hidden; }
-        .tasmania-dropdown-header { background: rgba(0,0,0,0.4); padding: 8px 12px; display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; color: var(--bom-orange); font-size: 0.85rem; }
+        .tasmania-dropdown { margin-top: 0.8rem; border-radius: 18px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.4); overflow: hidden; }
+        .tasmania-dropdown-header { background: rgba(0,0,0,0.4); padding: 8px 12px; display: flex; justify-content: space-between; cursor: pointer; font-weight: 600; color: var(--noaa-blue); font-size: 0.85rem; }
         .tasmania-advantage-content { padding: 10px; background: rgba(12, 22, 45, 0.7); display: none; flex-direction: column; gap: 8px; font-size: 0.8rem; }
         .tasmania-advantage-content.open { display: flex; }
         .btn { padding: 6px 14px; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
-        .btn-primary { background: linear-gradient(95deg, var(--bom-orange), #ffa559); color: #0a0a1a; }
-        .btn-outline { background: rgba(255,140,66,0.15); border: 1px solid var(--bom-orange); color: #ffc48a; }
+        .btn-primary { background: linear-gradient(95deg, var(--noaa-blue), #60a5fa); color: #0a0a1a; }
+        .btn-outline { background: rgba(59,130,246,0.15); border: 1px solid var(--noaa-blue); color: #93c5fd; }
         .btn-agent { background: linear-gradient(95deg, #aa66ff, #cc88ff); color: #0a0a1a; }
         .forecast-chart-container { height: 130px; display: flex; align-items: flex-end; justify-content: space-around; gap: 4px; margin: 0.6rem 0; }
         .forecast-bar-container { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-        .forecast-bar { width: 100%; max-width: 24px; border-radius: 4px 4px 0 0; transition: height 0.3s ease; }
-        .forecast-bar.bom-forecast { background: linear-gradient(to top, #ff8c42, #ffaa66); }
-        .forecast-bar.estimated { background: linear-gradient(to top, #666, #999); opacity: 0.6; }
+        .forecast-bar { width: 100%; max-width: 24px; border-radius: 4px 4px 0 0; transition: height 0.3s ease; background: linear-gradient(to top, var(--noaa-blue), #60a5fa); }
         .forecast-label { font-size: 9px; margin-top: 4px; }
         .forecast-value { font-size: 9px; }
-        .forecast-source-badge { font-size: 0.6rem; color: #00ffaa; background: rgba(0,255,170,0.1); padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
         .loading { text-align: center; padding: 2rem; }
         .footer { text-align: center; margin-top: 1.5rem; padding: 0.8rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem; }
         .good { color: #00ffaa; } .fair { color: #ffaa66; } .poor { color: #ff8866; }
@@ -81,28 +76,28 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .tab-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.8rem; }
         .tab { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
-        .tab:hover { background: rgba(255,140,66,0.3); }
-        .tab.active { background: var(--bom-orange); color: #030617; }
+        .tab:hover { background: rgba(59,130,246,0.3); }
+        .tab.active { background: var(--noaa-blue); color: #030617; }
         .tab.my-location-tab { border: 1px solid #4fc3f7; color: #4fc3f7; }
         .tab.my-location-tab.active { background: #4fc3f7; color: #030617; border-color: #4fc3f7; }
         .interval-btn { background: rgba(255,255,255,0.1); border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer; color: #ccc; font-size: 0.7rem; transition: 0.2s; }
-        .interval-btn.active { background: var(--bom-orange); color: #000; }
+        .interval-btn.active { background: var(--noaa-blue); color: #000; }
         .control-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
-        .update-badge { position: fixed; bottom: 12px; left: 12px; background: #ff8c42cc; backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 40px; font-size: 0.7rem; z-index: 1100; font-weight: bold; cursor: pointer; transition: all 0.2s; border: 1px solid #ffaa66; display: none; }
+        .update-badge { position: fixed; bottom: 12px; left: 12px; background: #3b82f6cc; backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 40px; font-size: 0.7rem; z-index: 1100; font-weight: bold; cursor: pointer; transition: all 0.2s; border: 1px solid #60a5fa; display: none; }
         .alert-critical { background: rgba(255,50,50,0.3) !important; border-left: 4px solid #ff3333 !important; }
         .alert-high { background: rgba(255,140,66,0.25) !important; border-left: 4px solid #ff8c42 !important; }
         .alert-medium { background: rgba(255,200,50,0.2) !important; border-left: 4px solid #ffc832 !important; }
         .agent-badge { display: inline-block; background: #aa66ff; color: white; font-size: 0.6rem; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
-        .init-loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 2000; background: rgba(3, 6, 23, 0.95); padding: 2rem; border-radius: 24px; backdrop-filter: blur(20px); border: 1px solid var(--bom-orange); }
-        .init-spinner { width: 50px; height: 50px; border: 3px solid var(--bom-orange); border-top-color: transparent; border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
+        .init-loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 2000; background: rgba(3, 6, 23, 0.95); padding: 2rem; border-radius: 24px; backdrop-filter: blur(20px); border: 1px solid var(--noaa-blue); }
+        .init-spinner { width: 50px; height: 50px; border: 3px solid var(--noaa-blue); border-top-color: transparent; border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
         .data-source-toggle { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 40px; }
-        .data-source-toggle label { font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .data-source-toggle label { font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 4px; color: #93c5fd; }
         .region-bonus { font-size: 0.7rem; color: #00ffaa; margin-top: 4px; text-align: center; }
         .api-key-inputs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 16px; }
         .api-key-inputs .input-group { display: flex; gap: 6px; align-items: center; flex: 1; min-width: 160px; }
         .api-key-inputs input { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-radius: 20px; padding: 4px 12px; color: white; font-size: 0.7rem; flex: 1; min-width: 80px; }
         .api-key-inputs input::placeholder { color: #666; }
-        .api-key-inputs button { background: var(--bom-orange); color: #0a0a1a; border: none; border-radius: 20px; padding: 4px 12px; font-weight: 600; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
+        .api-key-inputs button { background: var(--noaa-blue); color: #0a0a1a; border: none; border-radius: 20px; padding: 4px 12px; font-weight: 600; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
         .api-key-inputs .status-badge { font-size: 0.6rem; padding: 2px 8px; border-radius: 20px; }
         .status-badge.active { background: rgba(0,255,170,0.2); color: #00ffaa; }
         .status-badge.inactive { background: rgba(255,100,50,0.2); color: #ff8866; }
@@ -112,10 +107,8 @@
         .weather-tag .value { color: #4fc3f7; font-weight: 600; }
         .location-name-display { font-size: 0.8rem; color: #4fc3f7; text-align: center; margin-top: 4px; }
         .gps-badge { display: inline-block; background: rgba(79, 195, 247, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.6rem; color: #4fc3f7; margin-left: 6px; }
-        .forecast-accuracy { font-size: 0.65rem; color: #00ffaa; text-align: center; margin-top: 4px; }
-        .bom-forecast-badge { display: inline-block; background: rgba(255,140,66,0.2); padding: 2px 10px; border-radius: 12px; font-size: 0.6rem; color: #ff8c42; margin-left: 6px; }
-        .cors-notice { font-size: 0.6rem; color: #ffaa66; text-align: center; margin-top: 2px; display: none; }
-        .api-fallback-notice { font-size: 0.6rem; color: #ff8866; text-align: center; margin-top: 2px; display: none; }
+        .forecast-accuracy { font-size: 0.65rem; color: #60a5fa; text-align: center; margin-top: 4px; }
+        .noaa-badge { display: inline-block; background: rgba(59,130,246,0.2); padding: 2px 10px; border-radius: 12px; font-size: 0.6rem; color: #60a5fa; margin-left: 6px; }
     </style>
 </head>
 <body class="simple-view">
@@ -124,17 +117,12 @@
 <div class="update-badge" id="updateBadge">🔄 New version ready! Tap to update</div>
 
 <div class="container">
-    <header><h1>Aurora Tracker • Australia <span class="agent-badge">🤖 AI Agent Active</span></h1><p class="subtitle">Real-time southern lights • AI-powered monitoring • BOM/NOAA/WeatherAPI</p></header>
+    <header><h1>Aurora Tracker • Australia <span class="agent-badge">🤖 AI Agent Active</span></h1><p class="subtitle">Real-time southern lights • AI-powered monitoring • NOAA Space Weather</p></header>
     <div class="view-toggle"><button class="view-btn active" id="simpleViewBtn">🌙 Simple View</button><button class="view-btn" id="detailedViewBtn">🔭 Detailed View</button></div>
     <div class="control-bar">
         <button class="btn btn-primary" id="fetchBtn">🔄 Refresh</button>
         <button class="btn btn-outline" id="locationBtn">📍 My Location</button>
         <button class="btn btn-agent" id="notifyBtn">🔔 Enable Alerts</button>
-        <div class="data-source-toggle">
-            <span style="font-size:0.7rem;">📡 Source:</span>
-            <label><input type="radio" name="dataSource" value="bom" id="sourceBOM" checked> <span style="color:var(--bom-orange);">BOM</span></label>
-            <label><input type="radio" name="dataSource" value="noaa" id="sourceNOAA"> <span style="color:var(--noaa-blue);">NOAA</span></label>
-        </div>
     </div>
     
     <!-- API Key Management -->
@@ -145,17 +133,14 @@
             <button id="saveWeatherKeyBtn">Save</button>
             <span class="status-badge inactive" id="weatherKeyStatus">Not set</span>
         </div>
-        <div class="input-group">
-            <span style="font-size:0.7rem; color:#aaa;">🔑 BOM API:</span>
-            <input type="password" id="bomApiKeyInput" placeholder="Enter BOM key">
-            <button id="saveBomKeyBtn">Save</button>
-            <span class="status-badge inactive" id="bomKeyStatus">Not set</span>
+        <div style="font-size:0.6rem; color:#60a5fa; margin-left:auto; padding:4px 12px; background:rgba(59,130,246,0.1); border-radius:20px;">
+            📡 NOAA Data (Real-time)
         </div>
     </div>
     
-    <div id="loading" class="loading" style="display: none;"><div style="width: 35px;height:35px;border:3px solid #ff8c42; border-top-color:transparent;border-radius:50%;margin:0 auto 0.8rem;animation: spin 0.8s linear infinite;"></div><div id="loadingMessage">Fetching space weather...</div></div>
+    <div id="loading" class="loading" style="display: none;"><div style="width: 35px;height:35px;border:3px solid #3b82f6; border-top-color:transparent;border-radius:50%;margin:0 auto 0.8rem;animation: spin 0.8s linear infinite;"></div><div id="loadingMessage">Fetching space weather...</div></div>
     <div id="dataAlert" style="display: none; padding: 8px; border-radius: 16px; margin-bottom: 0.8rem; font-size:0.8rem;"></div>
-    <div id="dashboardContent" style="display: none;"><div class="dashboard"><div class="main-panel"><div class="card kp-display"><div class="card-header"><div class="card-title">🌌 Geomagnetic Activity</div></div><div class="kp-value" id="kpValue">--</div><div id="kpDescription" style="text-align:center; font-size:0.8rem;">Loading...</div><div class="aurora-meter"><div class="meter-indicator" id="kpIndicator"></div></div><div class="data-grid"><div class="data-item"><div class="data-label">Visibility</div><div class="data-value" id="visibilityChance">--%</div></div><div class="data-item"><div class="data-label">Storm Level</div><div class="data-value" id="stormLevel">--</div></div><div class="data-item"><div class="data-label">Moon</div><div class="data-value" id="moonPhase">--</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">⭐ Viewing Score <span style="font-size:0.7rem;">(AI evaluated)</span></div></div><div class="viewing-score" id="viewingScore">--</div><div id="viewingAdvice" style="text-align:center; font-size:0.75rem;">Loading conditions...</div><div id="agentSummary" class="agent-summary">🤖 Agent initializing...</div><div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;"><div class="weather-badge"><span>☁️</span> <span id="cloudCover">--</span></div><div class="weather-badge"><span>🌙</span> <span id="moonDetail">--</span></div></div><div class="weather-conditions" id="weatherConditions"><span class="weather-tag"><span class="label">🌡️ Temp:</span> <span class="value" id="weatherTemp">--</span></span><span class="weather-tag"><span class="label">💨 Wind:</span> <span class="value" id="weatherWind">--</span></span><span class="weather-tag"><span class="label">💧 Humidity:</span> <span class="value" id="weatherHumidity">--</span></span></div><div class="location-name-display" id="locationNameDisplay">📍 Location: <span id="locationNameText">Select a region</span></div></div><div class="card"><div class="card-header"><div class="card-title">☀️ Solar Wind</div></div><div class="dial-container"><div class="dial"><div class="dial-title">Speed</div><div class="dial-circle"><div class="dial-center"><span id="speedValue">--</span></div></div><div style="font-size:0.6rem;">km/s</div></div><div class="dial"><div class="dial-title">Bz</div><div class="dial-circle"><div class="dial-center"><span id="bzValue">--</span></div></div><div style="font-size:0.6rem;">nT</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">🇦🇺 Your Region</div></div><div class="tab-container" id="locationTabs">
+    <div id="dashboardContent" style="display: none;"><div class="dashboard"><div class="main-panel"><div class="card kp-display"><div class="card-header"><div class="card-title">🌌 Geomagnetic Activity <span class="noaa-badge">NOAA</span></div></div><div class="kp-value" id="kpValue">--</div><div id="kpDescription" style="text-align:center; font-size:0.8rem;">Loading...</div><div class="aurora-meter"><div class="meter-indicator" id="kpIndicator"></div></div><div class="data-grid"><div class="data-item"><div class="data-label">Visibility</div><div class="data-value" id="visibilityChance">--%</div></div><div class="data-item"><div class="data-label">Storm Level</div><div class="data-value" id="stormLevel">--</div></div><div class="data-item"><div class="data-label">Moon</div><div class="data-value" id="moonPhase">--</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">⭐ Viewing Score <span style="font-size:0.7rem;">(AI evaluated)</span></div></div><div class="viewing-score" id="viewingScore">--</div><div id="viewingAdvice" style="text-align:center; font-size:0.75rem;">Loading conditions...</div><div id="agentSummary" class="agent-summary">🤖 Agent initializing...</div><div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;"><div class="weather-badge"><span>☁️</span> <span id="cloudCover">--</span></div><div class="weather-badge"><span>🌙</span> <span id="moonDetail">--</span></div></div><div class="weather-conditions" id="weatherConditions"><span class="weather-tag"><span class="label">🌡️ Temp:</span> <span class="value" id="weatherTemp">--</span></span><span class="weather-tag"><span class="label">💨 Wind:</span> <span class="value" id="weatherWind">--</span></span><span class="weather-tag"><span class="label">💧 Humidity:</span> <span class="value" id="weatherHumidity">--</span></span></div><div class="location-name-display" id="locationNameDisplay">📍 Location: <span id="locationNameText">Select a region</span></div></div><div class="card"><div class="card-header"><div class="card-title">☀️ Solar Wind <span class="noaa-badge">NOAA</span></div></div><div class="dial-container"><div class="dial"><div class="dial-title">Speed</div><div class="dial-circle"><div class="dial-center"><span id="speedValue">--</span></div></div><div style="font-size:0.6rem;">km/s</div></div><div class="dial"><div class="dial-title">Bz</div><div class="dial-circle"><div class="dial-center"><span id="bzValue">--</span></div></div><div style="font-size:0.6rem;">nT</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">🇦🇺 Your Region</div></div><div class="tab-container" id="locationTabs">
         <div class="tab active" data-loc="tasmania">TAS</div>
         <div class="tab" data-loc="penguin">🐧 Penguin</div>
         <div class="tab" data-loc="victoria">VIC</div>
@@ -163,30 +148,19 @@
         <div class="tab" data-loc="west-aus">WA</div>
         <div class="tab" data-loc="nsw">NSW</div>
         <div class="tab my-location-tab" data-loc="my-location" id="myLocationTab" style="display:none;">📍 My Location</div>
-    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast <span class="bom-forecast-badge" id="forecastBadge">📊 BOM Real</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast source: <span id="forecastSourceLabel">BOM Space Weather</span></div><div class="cors-notice" id="corsNotice">⚠️ Using CORS proxy for BOM API</div><div class="api-fallback-notice" id="apiFallbackNotice">⚠️ BOM API unavailable - using NOAA data</div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span id="forecastSourceStatus">📊 Forecast: <span id="forecastStatusText">--</span></span></div></div></div></div></div>
-<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.7 • BOM + NOAA + WeatherAPI.com + Real Forecasts</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
+    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 Estimated 3‑Day Forecast <span class="noaa-badge">Based on Current Kp</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast: Estimated from current conditions (NOAA data)</div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">NOAA</span> Space Weather<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span style="color:#60a5fa;">✅ NOAA Real-time Data</span></div></div></div></div></div>
+<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v3.0 • NOAA + WeatherAPI.com</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
 
 <script>
 (function() {
     'use strict';
 
-    // ==================== CORS PROXY ====================
-    // Using a CORS proxy that supports POST requests with JSON bodies
-    // corsproxy.io works with POST requests
-    const CORS_PROXY = 'https://corsproxy.io/?';
-    
     // ==================== API KEY MANAGEMENT ====================
     function getWeatherApiKey() {
         try { return localStorage.getItem('weather_api_key') || ''; } catch(e) { return ''; }
     }
     function setWeatherApiKey(key) {
         try { localStorage.setItem('weather_api_key', key); return true; } catch(e) { return false; }
-    }
-    function getBomApiKey() {
-        try { return localStorage.getItem('bom_space_weather_api_key') || ''; } catch(e) { return ''; }
-    }
-    function setBomApiKey(key) {
-        try { localStorage.setItem('bom_space_weather_api_key', key); return true; } catch(e) { return false; }
     }
 
     // Location coordinates - INCLUDING PENGUIN, TAS
@@ -201,9 +175,6 @@
 
     // Store user's exact GPS location
     let userExactLocation = null;
-
-    // Store BOM forecast data
-    let bomForecastData = null;
 
     // ==================== SPACE WEATHER AGENT ====================
     class SpaceWeatherAgent {
@@ -449,7 +420,7 @@
         constructor(maxAgeMs = 24 * 60 * 60 * 1000) { 
             this.maxAge = maxAgeMs; 
             this.cacheKey = 'aurora_data_cache_v3'; 
-            this.version = '2.7.0'; 
+            this.version = '3.0.0'; 
             this.checkVersion(); 
         }
         
@@ -503,13 +474,12 @@
             localStorage.removeItem(this.cacheKey); 
         }
         
-        saveAuroraData(currentData, forecastData, source, weatherData, bomForecast) { 
+        saveAuroraData(currentData, forecastData, source, weatherData) { 
             this.saveData('current', currentData); 
             this.saveData('forecast', forecastData); 
             this.saveData('last_update', new Date().toISOString()); 
             this.saveData('source', source);
             if (weatherData) this.saveData('weather', weatherData);
-            if (bomForecast) this.saveData('bomForecast', bomForecast);
         }
         
         getCachedAuroraData() { 
@@ -518,74 +488,12 @@
                 forecast: this.getData('forecast'), 
                 lastUpdate: this.getData('last_update'),
                 source: this.getData('source'),
-                weather: this.getData('weather'),
-                bomForecast: this.getData('bomForecast')
+                weather: this.getData('weather')
             }; 
         }
         
         hasValidData() { 
             return this.getData('current') !== null && this.getData('forecast') !== null; 
-        }
-    }
-
-    // ==================== BOM API (via CORS Proxy - POST support) ====================
-    async function fetchBomKIndex(apiKey) {
-        const url = 'https://sws-data.sws.bom.gov.au/api/v1/get-k-index';
-        const proxiedUrl = CORS_PROXY + encodeURIComponent(url);
-        
-        try {
-            const response = await fetch(proxiedUrl, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    api_key: apiKey, 
-                    format: 'json' 
-                })
-            });
-            
-            if (!response.ok) {
-                console.warn('BOM K-index proxy response:', response.status);
-                return null;
-            }
-            const data = await response.json();
-            console.log('✅ BOM K-index via proxy:', data);
-            return data;
-        } catch (e) {
-            console.warn('BOM K-index via proxy failed:', e.message);
-            return null;
-        }
-    }
-
-    async function fetchBomForecast(apiKey) {
-        const url = 'https://sws-data.sws.bom.gov.au/api/v1/get-aurora-outlook';
-        const proxiedUrl = CORS_PROXY + encodeURIComponent(url);
-        
-        try {
-            const response = await fetch(proxiedUrl, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    api_key: apiKey, 
-                    format: 'json' 
-                })
-            });
-            
-            if (!response.ok) {
-                console.warn('BOM forecast proxy response:', response.status);
-                return null;
-            }
-            const data = await response.json();
-            console.log('✅ BOM Forecast via proxy:', data);
-            return data;
-        } catch (e) {
-            console.warn('BOM forecast via proxy failed:', e.message);
-            return null;
         }
     }
 
@@ -645,112 +553,63 @@
         }
     }
 
-    // ==================== DATA FETCHER ====================
-    async function fetchSpaceWeatherData(source = 'bom') {
+    // ==================== NOAA DATA FETCHER ====================
+    async function fetchSpaceWeatherData() {
         const start = Date.now();
-        let bomApiKey = getBomApiKey();
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             
             let kp = 3.2;
             let bz = -2;
             let speed = 400;
-            let sourceLabel = 'NOAA';
-            let usedProxy = false;
-            let bomAvailable = false;
             
-            // Try BOM API first if key is available (via CORS proxy)
-            if (source === 'bom' && bomApiKey) {
-                try {
-                    const bomData = await fetchBomKIndex(bomApiKey);
-                    if (bomData && bomData.data && bomData.data.k_index) {
-                        const kIndexData = bomData.data.k_index;
-                        if (Array.isArray(kIndexData) && kIndexData.length > 0) {
-                            const latest = kIndexData[kIndexData.length - 1];
-                            kp = parseFloat(latest.value) || 3.2;
-                        } else if (kIndexData.value) {
-                            kp = parseFloat(kIndexData.value) || 3.2;
-                        }
-                        sourceLabel = 'BOM (via CORS proxy)';
-                        usedProxy = true;
-                        bomAvailable = true;
-                        console.log('✅ BOM K-index via proxy:', kp);
-                    } else {
-                        console.warn('BOM API returned no data, falling back to NOAA');
-                    }
-                } catch (bomError) {
-                    console.warn('BOM API fetch failed:', bomError.message, 'falling back to NOAA');
+            // Fetch K-index from NOAA
+            try {
+                const kpRes = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json?t=' + Date.now(), { signal: controller.signal });
+                if (kpRes.ok) { 
+                    const kpData = await kpRes.json(); 
+                    if (Array.isArray(kpData) && kpData.length > 1) { 
+                        const last = kpData[kpData.length - 1]; 
+                        kp = parseFloat(last[1]); 
+                        if (isNaN(kp)) kp = 3.2;
+                    } 
                 }
-            }
+            } catch(e) { console.warn('K-index fetch failed:', e); }
             
-            // Fallback to NOAA if BOM didn't provide data
-            if (!bomAvailable) {
-                try {
-                    const kpRes = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json?t=' + Date.now(), { signal: controller.signal });
-                    if (kpRes.ok) { 
-                        const kpData = await kpRes.json(); 
-                        if (Array.isArray(kpData) && kpData.length > 1) { 
-                            const last = kpData[kpData.length - 1]; 
-                            kp = parseFloat(last[1]); 
-                            if (isNaN(kp)) kp = 3.2;
-                            if (source === 'bom') kp = Math.min(9, kp * 1.08);
-                        } 
-                    }
-                } catch(e) { console.warn('K-index fetch failed:', e); }
-                
-                try {
-                    const magRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-2-hour.json?t=' + Date.now(), { signal: controller.signal });
-                    if (magRes.ok) { 
-                        const magData = await magRes.json(); 
-                        if (Array.isArray(magData) && magData.length > 1) { 
-                            const last = magData[magData.length - 1]; 
-                            bz = parseFloat(last[3]) || -2; 
-                        } 
-                    }
-                } catch(e) { console.warn('Bz fetch failed:', e); }
-                
-                try {
-                    const plasmaRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json?t=' + Date.now(), { signal: controller.signal });
-                    if (plasmaRes.ok) { 
-                        const plasmaData = await plasmaRes.json(); 
-                        if (Array.isArray(plasmaData) && plasmaData.length > 1) { 
-                            const last = plasmaData[plasmaData.length - 1]; 
-                            speed = parseFloat(last[2]) || 400; 
-                        } 
-                    }
-                } catch(e) { console.warn('Speed fetch failed:', e); }
-                
-                if (source === 'bom') sourceLabel = 'BOM (via NOAA fallback)';
-                else sourceLabel = 'NOAA (Space Weather Prediction Center)';
-                
-                // Show fallback notice
-                const fallbackNotice = document.getElementById('apiFallbackNotice');
-                if (fallbackNotice) {
-                    fallbackNotice.style.display = 'block';
-                    fallbackNotice.innerText = '⚠️ BOM API unavailable - using NOAA data';
+            // Fetch Bz from NOAA
+            try {
+                const magRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-2-hour.json?t=' + Date.now(), { signal: controller.signal });
+                if (magRes.ok) { 
+                    const magData = await magRes.json(); 
+                    if (Array.isArray(magData) && magData.length > 1) { 
+                        const last = magData[magData.length - 1]; 
+                        bz = parseFloat(last[3]) || -2; 
+                    } 
                 }
-            } else {
-                const fallbackNotice = document.getElementById('apiFallbackNotice');
-                if (fallbackNotice) fallbackNotice.style.display = 'none';
-            }
+            } catch(e) { console.warn('Bz fetch failed:', e); }
             
-            // Show CORS notice if proxy was used
-            const corsNotice = document.getElementById('corsNotice');
-            if (corsNotice) {
-                corsNotice.style.display = usedProxy ? 'block' : 'none';
-            }
+            // Fetch Solar Wind Speed from NOAA
+            try {
+                const plasmaRes = await fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-2-hour.json?t=' + Date.now(), { signal: controller.signal });
+                if (plasmaRes.ok) { 
+                    const plasmaData = await plasmaRes.json(); 
+                    if (Array.isArray(plasmaData) && plasmaData.length > 1) { 
+                        const last = plasmaData[plasmaData.length - 1]; 
+                        speed = parseFloat(last[2]) || 400; 
+                    } 
+                }
+            } catch(e) { console.warn('Speed fetch failed:', e); }
             
             clearTimeout(timeoutId);
             
-            // Generate forecast - BUT we'll override with BOM real forecast if available
+            // Generate estimated forecast based on current Kp
             const now = new Date();
             let allForecasts = [];
             for (let i = 1; i <= 12; i++) { 
                 let dt = new Date(now.getTime() + i * 3 * 60 * 60 * 1000);
                 let forecastKp = kp + Math.sin(i * 0.7) * 0.5;
-                if (source === 'bom') forecastKp = Math.min(9, forecastKp * 1.02);
                 forecastKp = Math.min(9, Math.max(0, forecastKp)); 
                 allForecasts.push({ timestamp: dt.toISOString(), kp: forecastKp }); 
             }
@@ -761,13 +620,11 @@
                 kp: Math.min(9, Math.max(0, kp)), 
                 solar: { speed: Math.round(speed), bz: parseFloat(bz.toFixed(1)) }, 
                 forecast: { allForecasts, peakToday, peakTomorrow }, 
-                source: sourceLabel, 
-                latency: Date.now() - start,
-                usedProxy: usedProxy,
-                bomAvailable: bomAvailable
+                source: 'NOAA Space Weather Prediction Center', 
+                latency: Date.now() - start 
             };
         } catch (e) { 
-            console.error(`${source} fetch error:`, e);
+            console.error('NOAA fetch error:', e);
             throw e; 
         }
     }
@@ -783,9 +640,6 @@
     let refreshInterval = null;
     let isInitialized = false;
     let currentInterval = '3h';
-    let currentDataSource = 'bom';
-    let forecastSource = 'estimated';
-    let usedProxy = false;
 
     // DOM Elements
     let dashboard, loadingDiv, dataStatusSpan, kpSpan, kpDesc, kpIndicator, visibilitySpan;
@@ -794,7 +648,7 @@
     let advantageTextSpan, boostTextSpan, tasmaniaTipSpan, sourceLatencySpan, agentSummarySpan;
     let agentRecommendationsDiv, agentStatusSpan, activeSourceLabel, regionBonusSpan;
     let weatherTempSpan, weatherWindSpan, weatherHumiditySpan, weatherSourceStatus;
-    let locationNameText, myLocationTab, forecastSourceLabel, forecastStatusText;
+    let locationNameText, myLocationTab;
 
     function initDOMElements() {
         dashboard = document.getElementById('dashboardContent');
@@ -831,8 +685,6 @@
         weatherSourceStatus = document.getElementById('weatherSourceStatus');
         locationNameText = document.getElementById('locationNameText');
         myLocationTab = document.getElementById('myLocationTab');
-        forecastSourceLabel = document.getElementById('forecastSourceLabel');
-        forecastStatusText = document.getElementById('forecastStatusText');
     }
 
     function getMoonPhase(date) {
@@ -870,7 +722,6 @@
         return { coverage: `${coverage} (${Math.round(percent)}%)`, percent, source: 'Estimated' };
     }
 
-    // ==================== MAIN FETCH ====================
     async function fetchData() {
         if (!isInitialized) return;
         if (loadingDiv) loadingDiv.style.display = 'block';
@@ -880,115 +731,10 @@
         }
         
         try {
-            // Fetch space weather data
-            let data = await fetchSpaceWeatherData(currentDataSource);
+            // Fetch NOAA space weather data
+            let data = await fetchSpaceWeatherData();
             currentData = data;
-            usedProxy = data.usedProxy || false;
-            
-            // Fetch BOM REAL FORECAST if API key is available (via CORS proxy)
-            const bomApiKey = getBomApiKey();
-            if (bomApiKey) {
-                try {
-                    const bomForecast = await fetchBomForecast(bomApiKey);
-                    if (bomForecast && bomForecast.data) {
-                        bomForecastData = bomForecast;
-                        forecastSource = 'bom';
-                        console.log('✅ BOM REAL FORECAST via proxy received');
-                        
-                        // Try to parse forecast data from BOM response
-                        let forecastPeriods = [];
-                        const outlookData = bomForecast.data;
-                        
-                        if (outlookData.forecast && Array.isArray(outlookData.forecast)) {
-                            forecastPeriods = outlookData.forecast.map(period => ({
-                                timestamp: period.time || period.datetime || new Date().toISOString(),
-                                kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
-                                label: period.label || period.period || ''
-                            }));
-                        } else if (outlookData.aurora_outlook && Array.isArray(outlookData.aurora_outlook)) {
-                            forecastPeriods = outlookData.aurora_outlook.map(period => ({
-                                timestamp: period.time || period.datetime || new Date().toISOString(),
-                                kp: parseFloat(period.kp_index) || parseFloat(period.kp) || 3.0,
-                                label: period.label || period.period || ''
-                            }));
-                        } else if (outlookData.kp_forecast && Array.isArray(outlookData.kp_forecast)) {
-                            forecastPeriods = outlookData.kp_forecast.map(period => ({
-                                timestamp: period.time || period.datetime || new Date().toISOString(),
-                                kp: parseFloat(period.value) || parseFloat(period.kp) || 3.0,
-                                label: period.label || period.period || ''
-                            }));
-                        }
-                        
-                        if (forecastPeriods.length > 0) {
-                            const allForecasts = forecastPeriods.map((period, index) => {
-                                let timestamp = period.timestamp;
-                                if (!timestamp || timestamp === '') {
-                                    const now = new Date();
-                                    timestamp = new Date(now.getTime() + (index + 1) * 3 * 60 * 60 * 1000).toISOString();
-                                }
-                                return {
-                                    timestamp: timestamp,
-                                    kp: Math.min(9, Math.max(0, period.kp))
-                                };
-                            });
-                            
-                            const peakToday = allForecasts.length > 0 ? Math.max(...allForecasts.slice(0, 4).map(f => f.kp)) : data.forecast.peakToday;
-                            const peakTomorrow = allForecasts.length > 4 ? Math.max(...allForecasts.slice(4, 8).map(f => f.kp)) : data.forecast.peakTomorrow;
-                            
-                            forecastData = {
-                                allForecasts: allForecasts,
-                                peakToday: peakToday,
-                                peakTomorrow: peakTomorrow
-                            };
-                            
-                            if (forecastSourceLabel) forecastSourceLabel.innerText = 'BOM Space Weather (Real)';
-                            if (forecastStatusText) {
-                                forecastStatusText.innerText = '✅ BOM Real Forecast';
-                                forecastStatusText.style.color = '#00ffaa';
-                            }
-                            if (document.getElementById('forecastBadge')) {
-                                document.getElementById('forecastBadge').innerHTML = '📊 BOM Real';
-                                document.getElementById('forecastBadge').style.background = 'rgba(0,255,170,0.2)';
-                                document.getElementById('forecastBadge').style.color = '#00ffaa';
-                            }
-                        } else {
-                            forecastSource = 'estimated';
-                            if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM data unavailable)';
-                            if (forecastStatusText) {
-                                forecastStatusText.innerText = '⚠️ Estimated';
-                                forecastStatusText.style.color = '#ffaa66';
-                            }
-                        }
-                    } else {
-                        forecastSource = 'estimated';
-                        if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM unavailable)';
-                        if (forecastStatusText) {
-                            forecastStatusText.innerText = '⚠️ Estimated';
-                            forecastStatusText.style.color = '#ff8866';
-                        }
-                    }
-                } catch (forecastError) {
-                    console.warn('BOM forecast fetch failed:', forecastError);
-                    forecastSource = 'estimated';
-                    if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM error)';
-                    if (forecastStatusText) {
-                        forecastStatusText.innerText = '⚠️ Estimated';
-                        forecastStatusText.style.color = '#ff8866';
-                    }
-                }
-            } else {
-                forecastSource = 'estimated';
-                if (forecastSourceLabel) forecastSourceLabel.innerText = 'Estimated (BOM key required)';
-                if (forecastStatusText) {
-                    forecastStatusText.innerText = '⚠️ No BOM key';
-                    forecastStatusText.style.color = '#ff8866';
-                }
-            }
-            
-            // If forecastData not set by BOM, use the generated one
-            if (!forecastData) {
-                forecastData = data.forecast;
-            }
+            forecastData = data.forecast;
             
             // Fetch REAL weather data if API key is available
             const weatherApiKey = getWeatherApiKey();
@@ -1029,27 +775,19 @@
                 }
             }
             
-            if (dataCache) dataCache.saveAuroraData(currentData, forecastData, data.source, currentWeatherData, bomForecastData);
+            if (dataCache) dataCache.saveAuroraData(currentData, forecastData, data.source, currentWeatherData);
             if (sourceLatencySpan) sourceLatencySpan.innerText = data.latency + ' ms';
             if (activeSourceLabel) activeSourceLabel.innerText = data.source;
             
             if (dataStatusSpan) {
-                if (data.source.includes('BOM')) {
-                    dataStatusSpan.innerText = '✅ BOM DATA';
-                    dataStatusSpan.className = 'data-status status-bom';
-                } else {
-                    dataStatusSpan.innerText = '✅ NOAA DATA';
-                    dataStatusSpan.className = 'data-status status-noaa';
-                }
+                dataStatusSpan.innerText = '✅ NOAA DATA';
+                dataStatusSpan.className = 'data-status status-noaa';
             }
             
             await evaluateWithAgent();
             if (dashboard) dashboard.style.display = 'block';
             
-            const forecastMsg = forecastSource === 'bom' ? ' with BOM real forecast' : ' (forecast estimated)';
-            const proxyMsg = usedProxy ? ' (via CORS proxy)' : '';
-            const fallbackMsg = data.bomAvailable ? '' : ' (NOAA fallback)';
-            showAlert('success', `${data.source} data updated in ${data.latency}ms${forecastMsg}${proxyMsg}${fallbackMsg}`);
+            showAlert('success', `${data.source} data updated in ${data.latency}ms`);
             
         } catch (err) {
             console.error('Fetch error:', err);
@@ -1059,8 +797,6 @@
                 currentData = cached.current;
                 forecastData = cached.forecast;
                 currentWeatherData = cached.weather || null;
-                bomForecastData = cached.bomForecast || null;
-                if (bomForecastData) forecastSource = 'bom';
                 await evaluateWithAgent();
                 if (dashboard) dashboard.style.display = 'block';
                 if (dataStatusSpan) {
@@ -1244,22 +980,13 @@
                 for (let i = 1; i <= 8; i++) list.push({ label: ((new Date().getHours() + i * 3) % 24) + 'h', kp: 3.5 });
             }
         }
-        const isBomForecast = forecastSource === 'bom' && bomForecastData && bomForecastData.data;
         list.forEach(item => { 
             const div = document.createElement('div'); 
             div.className = 'forecast-bar-container'; 
             const h = Math.min(110, Math.max(20, (item.kp / 9) * 110)); 
-            const barClass = isBomForecast ? 'forecast-bar bom-forecast' : 'forecast-bar estimated';
-            div.innerHTML = `<div class="${barClass}" style="height:${h}px;"></div><div class="forecast-label">${item.label}</div><div class="forecast-value">${item.kp.toFixed(1)}</div>`; 
+            div.innerHTML = `<div class="forecast-bar" style="height:${h}px;"></div><div class="forecast-label">${item.label}</div><div class="forecast-value">${item.kp.toFixed(1)}</div>`; 
             container.appendChild(div); 
         });
-        
-        if (isBomForecast) {
-            const note = document.createElement('div');
-            note.style.cssText = 'grid-column: 1 / -1; text-align: center; font-size: 0.6rem; color: #00ffaa; margin-top: 4px;';
-            note.innerText = '📊 BOM Real Forecast Data' + (usedProxy ? ' (via CORS proxy)' : '');
-            container.appendChild(note);
-        }
     }
 
     function selectLocation(loc) { 
@@ -1376,7 +1103,7 @@
         alertDiv.style.background = type === 'success' ? 'rgba(0,255,170,0.15)' : 
                                    (type === 'warning' ? 'rgba(255,140,66,0.2)' : 
                                    (type === 'info' ? 'rgba(79,195,247,0.15)' : 'rgba(255,50,50,0.15)'));
-        alertDiv.style.border = type === 'info' ? '1px solid #4fc3f7' : '1px solid var(--bom-orange)';
+        alertDiv.style.border = type === 'info' ? '1px solid #4fc3f7' : '1px solid var(--noaa-blue)';
         setTimeout(() => { alertDiv.style.display = 'none'; }, 3500);
     }
 
@@ -1394,14 +1121,9 @@
         const locationBtn = document.getElementById('locationBtn');
         const notifyBtn = document.getElementById('notifyBtn');
         const tasmaniaHeader = document.getElementById('tasmaniaDropdownHeader');
-        const sourceBOM = document.getElementById('sourceBOM');
-        const sourceNOAA = document.getElementById('sourceNOAA');
         const saveWeatherKeyBtn = document.getElementById('saveWeatherKeyBtn');
         const weatherApiKeyInput = document.getElementById('weatherApiKeyInput');
         const weatherKeyStatus = document.getElementById('weatherKeyStatus');
-        const saveBomKeyBtn = document.getElementById('saveBomKeyBtn');
-        const bomApiKeyInput = document.getElementById('bomApiKeyInput');
-        const bomKeyStatus = document.getElementById('bomKeyStatus');
         
         const savedWeatherKey = getWeatherApiKey();
         if (savedWeatherKey && weatherApiKeyInput) {
@@ -1409,15 +1131,6 @@
             if (weatherKeyStatus) {
                 weatherKeyStatus.innerText = '✅ Set';
                 weatherKeyStatus.className = 'status-badge active';
-            }
-        }
-        
-        const savedBomKey = getBomApiKey();
-        if (savedBomKey && bomApiKeyInput) {
-            bomApiKeyInput.value = '••••••••';
-            if (bomKeyStatus) {
-                bomKeyStatus.innerText = '✅ Set';
-                bomKeyStatus.className = 'status-badge active';
             }
         }
         
@@ -1435,24 +1148,6 @@
                     fetchData();
                 } else {
                     showAlert('warning', 'Please enter a valid WeatherAPI.com key');
-                }
-            };
-        }
-        
-        if (saveBomKeyBtn && bomApiKeyInput) {
-            saveBomKeyBtn.onclick = () => {
-                const key = bomApiKeyInput.value.trim();
-                if (key && key.length > 0) {
-                    setBomApiKey(key);
-                    if (bomKeyStatus) {
-                        bomKeyStatus.innerText = '✅ Saved!';
-                        bomKeyStatus.className = 'status-badge active';
-                    }
-                    bomApiKeyInput.value = '••••••••';
-                    showAlert('success', 'BOM API Key saved! Real forecasts enabled via CORS proxy.');
-                    fetchData();
-                } else {
-                    showAlert('warning', 'Please enter a valid BOM API key');
                 }
             };
         }
@@ -1494,23 +1189,6 @@
             tasmaniaHeader.onclick = () => { 
                 const content = document.getElementById('tasmaniaAdvantageContent');
                 if (content) content.classList.toggle('open'); 
-            };
-        }
-        
-        if (sourceBOM) {
-            sourceBOM.onchange = () => {
-                if (sourceBOM.checked) {
-                    currentDataSource = 'bom';
-                    fetchData();
-                }
-            };
-        }
-        if (sourceNOAA) {
-            sourceNOAA.onchange = () => {
-                if (sourceNOAA.checked) {
-                    currentDataSource = 'noaa';
-                    fetchData();
-                }
             };
         }
         
@@ -1556,7 +1234,7 @@
     }
 
     async function init() {
-        console.log('🚀 Initializing Aurora Tracker v2.7 with CORS Proxy (POST support)...');
+        console.log('🚀 Initializing Aurora Tracker v3.0 - NOAA Edition...');
         
         initDOMElements();
         
@@ -1584,8 +1262,6 @@
             currentData = cached.current;
             forecastData = cached.forecast;
             currentWeatherData = cached.weather || null;
-            bomForecastData = cached.bomForecast || null;
-            if (bomForecastData) forecastSource = 'bom';
             await evaluateWithAgent();
             if (dashboard) dashboard.style.display = 'block';
             if (activeSourceLabel) activeSourceLabel.innerText = cached.source || 'Cached';
@@ -1614,11 +1290,11 @@
         
         registerServiceWorker();
         
-        console.log('✅ Aurora Tracker v2.7 initialized successfully');
-        console.log('📊 Forecast source:', forecastSource === 'bom' ? 'BOM REAL (via CORS proxy)' : 'Estimated (fallback)');
+        console.log('✅ Aurora Tracker v3.0 initialized successfully');
+        console.log('📡 Data source: NOAA Space Weather Prediction Center');
         console.log('📍 Penguin, TAS coordinates: -41.1234, 146.0732');
         console.log('📍 GPS support enabled - click "My Location" for exact weather');
-        console.log('🔄 CORS Proxy enabled for BOM API: ' + CORS_PROXY);
+        console.log('🌤️ WeatherAPI.com integration enabled for real cloud data');
     }
 
     if (document.readyState === 'loading') {
