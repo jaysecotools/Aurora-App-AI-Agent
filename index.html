@@ -77,6 +77,8 @@
         .tab { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
         .tab:hover { background: rgba(255,140,66,0.3); }
         .tab.active { background: var(--bom-orange); color: #030617; }
+        .tab.my-location-tab { border: 1px solid #4fc3f7; color: #4fc3f7; }
+        .tab.my-location-tab.active { background: #4fc3f7; color: #030617; border-color: #4fc3f7; }
         .interval-btn { background: rgba(255,255,255,0.1); border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer; color: #ccc; font-size: 0.7rem; transition: 0.2s; }
         .interval-btn.active { background: var(--bom-orange); color: #000; }
         .control-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
@@ -102,6 +104,8 @@
         .weather-tag { background: rgba(79, 195, 247, 0.15); padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; border: 1px solid rgba(79, 195, 247, 0.3); }
         .weather-tag .label { color: #888; }
         .weather-tag .value { color: #4fc3f7; font-weight: 600; }
+        .location-name-display { font-size: 0.8rem; color: #4fc3f7; text-align: center; margin-top: 4px; }
+        .gps-badge { display: inline-block; background: rgba(79, 195, 247, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.6rem; color: #4fc3f7; margin-left: 6px; }
     </style>
 </head>
 <body class="simple-view">
@@ -141,8 +145,16 @@
     
     <div id="loading" class="loading" style="display: none;"><div style="width: 35px;height:35px;border:3px solid #ff8c42; border-top-color:transparent;border-radius:50%;margin:0 auto 0.8rem;animation: spin 0.8s linear infinite;"></div><div id="loadingMessage">Fetching space weather...</div></div>
     <div id="dataAlert" style="display: none; padding: 8px; border-radius: 16px; margin-bottom: 0.8rem; font-size:0.8rem;"></div>
-    <div id="dashboardContent" style="display: none;"><div class="dashboard"><div class="main-panel"><div class="card kp-display"><div class="card-header"><div class="card-title">🌌 Geomagnetic Activity</div></div><div class="kp-value" id="kpValue">--</div><div id="kpDescription" style="text-align:center; font-size:0.8rem;">Loading...</div><div class="aurora-meter"><div class="meter-indicator" id="kpIndicator"></div></div><div class="data-grid"><div class="data-item"><div class="data-label">Visibility</div><div class="data-value" id="visibilityChance">--%</div></div><div class="data-item"><div class="data-label">Storm Level</div><div class="data-value" id="stormLevel">--</div></div><div class="data-item"><div class="data-label">Moon</div><div class="data-value" id="moonPhase">--</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">⭐ Viewing Score <span style="font-size:0.7rem;">(AI evaluated)</span></div></div><div class="viewing-score" id="viewingScore">--</div><div id="viewingAdvice" style="text-align:center; font-size:0.75rem;">Loading conditions...</div><div id="agentSummary" class="agent-summary">🤖 Agent initializing...</div><div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;"><div class="weather-badge"><span>☁️</span> <span id="cloudCover">--</span></div><div class="weather-badge"><span>🌙</span> <span id="moonDetail">--</span></div></div><div class="weather-conditions" id="weatherConditions"><span class="weather-tag"><span class="label">🌡️ Temp:</span> <span class="value" id="weatherTemp">--</span></span><span class="weather-tag"><span class="label">💨 Wind:</span> <span class="value" id="weatherWind">--</span></span><span class="weather-tag"><span class="label">💧 Humidity:</span> <span class="value" id="weatherHumidity">--</span></span></div></div><div class="card"><div class="card-header"><div class="card-title">☀️ Solar Wind</div></div><div class="dial-container"><div class="dial"><div class="dial-title">Speed</div><div class="dial-circle"><div class="dial-center"><span id="speedValue">--</span></div></div><div style="font-size:0.6rem;">km/s</div></div><div class="dial"><div class="dial-title">Bz</div><div class="dial-circle"><div class="dial-center"><span id="bzValue">--</span></div></div><div style="font-size:0.6rem;">nT</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">🇦🇺 Your Region</div></div><div class="tab-container" id="locationTabs"><div class="tab active" data-loc="tasmania">TAS</div><div class="tab" data-loc="victoria">VIC</div><div class="tab" data-loc="south-aus">SA</div><div class="tab" data-loc="west-aus">WA</div><div class="tab" data-loc="nsw">NSW</div></div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast</div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span></div></div></div></div></div>
-<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.3 • BOM + NOAA + WeatherAPI.com</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use location</span></div></div>
+    <div id="dashboardContent" style="display: none;"><div class="dashboard"><div class="main-panel"><div class="card kp-display"><div class="card-header"><div class="card-title">🌌 Geomagnetic Activity</div></div><div class="kp-value" id="kpValue">--</div><div id="kpDescription" style="text-align:center; font-size:0.8rem;">Loading...</div><div class="aurora-meter"><div class="meter-indicator" id="kpIndicator"></div></div><div class="data-grid"><div class="data-item"><div class="data-label">Visibility</div><div class="data-value" id="visibilityChance">--%</div></div><div class="data-item"><div class="data-label">Storm Level</div><div class="data-value" id="stormLevel">--</div></div><div class="data-item"><div class="data-label">Moon</div><div class="data-value" id="moonPhase">--</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">⭐ Viewing Score <span style="font-size:0.7rem;">(AI evaluated)</span></div></div><div class="viewing-score" id="viewingScore">--</div><div id="viewingAdvice" style="text-align:center; font-size:0.75rem;">Loading conditions...</div><div id="agentSummary" class="agent-summary">🤖 Agent initializing...</div><div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;"><div class="weather-badge"><span>☁️</span> <span id="cloudCover">--</span></div><div class="weather-badge"><span>🌙</span> <span id="moonDetail">--</span></div></div><div class="weather-conditions" id="weatherConditions"><span class="weather-tag"><span class="label">🌡️ Temp:</span> <span class="value" id="weatherTemp">--</span></span><span class="weather-tag"><span class="label">💨 Wind:</span> <span class="value" id="weatherWind">--</span></span><span class="weather-tag"><span class="label">💧 Humidity:</span> <span class="value" id="weatherHumidity">--</span></span></div><div class="location-name-display" id="locationNameDisplay">📍 Location: <span id="locationNameText">Select a region</span></div></div><div class="card"><div class="card-header"><div class="card-title">☀️ Solar Wind</div></div><div class="dial-container"><div class="dial"><div class="dial-title">Speed</div><div class="dial-circle"><div class="dial-center"><span id="speedValue">--</span></div></div><div style="font-size:0.6rem;">km/s</div></div><div class="dial"><div class="dial-title">Bz</div><div class="dial-circle"><div class="dial-center"><span id="bzValue">--</span></div></div><div style="font-size:0.6rem;">nT</div></div></div></div><div class="card"><div class="card-header"><div class="card-title">🇦🇺 Your Region</div></div><div class="tab-container" id="locationTabs">
+        <div class="tab active" data-loc="tasmania">TAS</div>
+        <div class="tab" data-loc="penguin">🐧 Penguin</div>
+        <div class="tab" data-loc="victoria">VIC</div>
+        <div class="tab" data-loc="south-aus">SA</div>
+        <div class="tab" data-loc="west-aus">WA</div>
+        <div class="tab" data-loc="nsw">NSW</div>
+        <div class="tab my-location-tab" data-loc="my-location" id="myLocationTab" style="display:none;">📍 My Location</div>
+    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast</div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span></div></div></div></div></div>
+<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.4 • BOM + NOAA + WeatherAPI.com</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
 
 <script>
 (function() {
@@ -162,14 +174,18 @@
         try { localStorage.setItem('bom_space_weather_api_key', key); return true; } catch(e) { return false; }
     }
 
-    // Location coordinates for Australian regions
+    // Location coordinates - INCLUDING PENGUIN, TAS
     const REGION_COORDS = {
         'tasmania': { lat: -42.8821, lon: 147.3272, name: 'Hobart, TAS' },
+        'penguin': { lat: -41.1234, lon: 146.0732, name: 'Penguin, TAS' },
         'victoria': { lat: -37.8136, lon: 144.9631, name: 'Melbourne, VIC' },
         'south-aus': { lat: -34.9285, lon: 138.6007, name: 'Adelaide, SA' },
         'west-aus': { lat: -31.9505, lon: 115.8605, name: 'Perth, WA' },
         'nsw': { lat: -33.8688, lon: 151.2093, name: 'Sydney, NSW' }
     };
+
+    // Store user's exact GPS location
+    let userExactLocation = null;
 
     // ==================== SPACE WEATHER AGENT ====================
     class SpaceWeatherAgent {
@@ -225,8 +241,17 @@
             score -= (moonBrightness * 22);
             score -= (cloudPercent / 100) * 28;
 
-            if (location === 'tasmania') score += 15;
-            else if (location === 'victoria') score += 8;
+            // Location bonus - Tasmania gets the biggest boost
+            if (location === 'tasmania' || location === 'penguin' || location === 'my-location') {
+                // If using GPS, check if user is in Tasmania
+                let isTasmania = true;
+                if (location === 'my-location' && userExactLocation) {
+                    // Check if user is in Tasmania (roughly south of -40° latitude)
+                    isTasmania = userExactLocation.lat < -40;
+                }
+                if (isTasmania) score += 15;
+                else score += 8; // Default for other locations
+            } else if (location === 'victoria') score += 8;
             else if (location === 'south-aus') score += 5;
             else if (location === 'west-aus') score += 4;
             else if (location === 'nsw') score += 2;
@@ -409,7 +434,7 @@
         constructor(maxAgeMs = 24 * 60 * 60 * 1000) { 
             this.maxAge = maxAgeMs; 
             this.cacheKey = 'aurora_data_cache_v3'; 
-            this.version = '2.3.0'; 
+            this.version = '2.4.0'; 
             this.checkVersion(); 
         }
         
@@ -494,7 +519,20 @@
             return null;
         }
 
-        const coords = REGION_COORDS[location] || REGION_COORDS['tasmania'];
+        // Get coordinates - support "my-location" for GPS
+        let coords;
+        let locationName = '';
+        
+        if (location === 'my-location' && userExactLocation) {
+            coords = userExactLocation;
+            locationName = 'Your Location';
+        } else {
+            const region = REGION_COORDS[location];
+            if (!region) return null;
+            coords = { lat: region.lat, lon: region.lon };
+            locationName = region.name;
+        }
+        
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -519,6 +557,8 @@
                 condition: data.current.condition.text,       // REAL weather condition
                 feelslike: data.current.feelslike_c,          // REAL feels-like temp
                 location: data.location.name,
+                region: data.location.region,
+                country: data.location.country,
                 last_updated: data.current.last_updated,
                 is_day: data.current.is_day === 1,
                 valid: true
@@ -658,6 +698,7 @@
     let advantageTextSpan, boostTextSpan, tasmaniaTipSpan, sourceLatencySpan, agentSummarySpan;
     let agentRecommendationsDiv, agentStatusSpan, activeSourceLabel, regionBonusSpan;
     let weatherTempSpan, weatherWindSpan, weatherHumiditySpan, weatherSourceStatus;
+    let locationNameText, myLocationTab;
 
     function initDOMElements() {
         dashboard = document.getElementById('dashboardContent');
@@ -692,6 +733,8 @@
         weatherWindSpan = document.getElementById('weatherWind');
         weatherHumiditySpan = document.getElementById('weatherHumidity');
         weatherSourceStatus = document.getElementById('weatherSourceStatus');
+        locationNameText = document.getElementById('locationNameText');
+        myLocationTab = document.getElementById('myLocationTab');
     }
 
     function getMoonPhase(date) {
@@ -722,7 +765,7 @@
         // Fallback to estimated if no weather data
         const hour = new Date().getHours();
         let percent = 45;
-        if (selectedLocation === 'tasmania') percent = 55 + Math.sin(hour * 0.5) * 15;
+        if (selectedLocation === 'tasmania' || selectedLocation === 'penguin') percent = 55 + Math.sin(hour * 0.5) * 15;
         else if (selectedLocation === 'victoria') percent = 48 + Math.cos(hour * 0.4) * 18;
         else if (selectedLocation === 'west-aus') percent = 35 + Math.sin(hour * 0.3) * 20;
         else percent = 42 + Math.cos(hour * 0.5) * 18;
@@ -749,12 +792,23 @@
             const weatherApiKey = getWeatherApiKey();
             if (weatherApiKey) {
                 try {
-                    currentWeatherData = await fetchRealWeather(selectedLocation);
+                    // Use selected location for weather
+                    let weatherLocation = selectedLocation;
+                    // If using GPS, use my-location
+                    if (selectedLocation === 'my-location' && userExactLocation) {
+                        weatherLocation = 'my-location';
+                    }
+                    currentWeatherData = await fetchRealWeather(weatherLocation);
                     if (currentWeatherData && currentWeatherData.valid) {
                         console.log('✅ WeatherAPI.com data received - REAL cloud cover:', currentWeatherData.cloud + '%');
                         if (weatherSourceStatus) {
-                            weatherSourceStatus.innerText = `🌤️ Weather: ${currentWeatherData.location} (${currentWeatherData.cloud}% cloud)`;
+                            const locationDisplay = currentWeatherData.location || 'Unknown';
+                            weatherSourceStatus.innerText = `🌤️ Weather: ${locationDisplay} (${currentWeatherData.cloud}% cloud)`;
                             weatherSourceStatus.style.color = '#4fc3f7';
+                        }
+                        // Update location display with real location name
+                        if (locationNameText && currentWeatherData.location) {
+                            locationNameText.innerText = `${currentWeatherData.location}${selectedLocation === 'my-location' ? ' 📍' : ''}`;
                         }
                     } else {
                         if (weatherSourceStatus) {
@@ -896,11 +950,20 @@
         const cloudSource = cloud.source || 'Estimated';
         if (cloudSpan) cloudSpan.innerText = cloud.coverage + (cloudSource === 'WeatherAPI.com' ? ' 🌤️' : '');
         
+        // Region bonus for Penguin
+        let bonusMultiplier = 1;
+        if (selectedLocation === 'tasmania' || selectedLocation === 'penguin') {
+            bonusMultiplier = 1.4;
+        } else if (selectedLocation === 'victoria') {
+            bonusMultiplier = 1.15;
+        } else if (selectedLocation === 'south-aus') {
+            bonusMultiplier = 1.08;
+        } else if (selectedLocation === 'west-aus') {
+            bonusMultiplier = 1.05;
+        }
+        
         let baseChance = Math.min(90, Math.max(0, (kp - 2.5) * 18));
-        if (selectedLocation === 'tasmania') baseChance = Math.min(95, baseChance * 1.4);
-        else if (selectedLocation === 'victoria') baseChance = Math.min(88, baseChance * 1.15);
-        else if (selectedLocation === 'south-aus') baseChance = Math.min(85, baseChance * 1.08);
-        else if (selectedLocation === 'west-aus') baseChance = Math.min(82, baseChance * 1.05);
+        baseChance = Math.min(95, baseChance * bonusMultiplier);
         const finalChance = Math.round(Math.min(95, baseChance));
         if (locationChanceSpan) locationChanceSpan.innerText = finalChance + '%';
         if (visibilitySpan) visibilitySpan.innerText = finalChance + '%';
@@ -925,8 +988,29 @@
             updateForecastChart(); 
         }
         
-        let bonusMap = { tasmania: '+15', victoria: '+8', 'south-aus': '+5', 'west-aus': '+4', nsw: '+2' };
-        if (regionBonusSpan) regionBonusSpan.innerText = `📍 ${selectedLocation.toUpperCase()}: ${bonusMap[selectedLocation] || '+0'} score bonus`;
+        // Update location display
+        let displayName = 'Unknown';
+        if (selectedLocation === 'my-location' && userExactLocation) {
+            displayName = '📍 Your Location';
+            if (currentWeatherData && currentWeatherData.location) {
+                displayName = `${currentWeatherData.location} 📍`;
+            }
+        } else if (REGION_COORDS[selectedLocation]) {
+            displayName = REGION_COORDS[selectedLocation].name;
+        }
+        if (locationNameText) locationNameText.innerText = displayName;
+        
+        let bonusMap = { 
+            tasmania: '+15', 
+            penguin: '+15', 
+            victoria: '+8', 
+            'south-aus': '+5', 
+            'west-aus': '+4', 
+            nsw: '+2',
+            'my-location': '+15'
+        };
+        let bonusDisplay = selectedLocation === 'my-location' ? '+15' : (bonusMap[selectedLocation] || '+0');
+        if (regionBonusSpan) regionBonusSpan.innerText = `📍 ${displayName}: ${bonusDisplay} score bonus`;
         
         const boost = Math.min(65, 30 + Math.floor(kp * 4));
         if (advantageTextSpan) advantageTextSpan.innerText = `Tasmania closest to oval - Kp${kp.toFixed(1)} gives ${boost}% better odds`;
@@ -975,18 +1059,38 @@
         tabs.forEach(t => t.classList.remove('active')); 
         const activeTab = document.querySelector(`.tab[data-loc="${loc}"]`);
         if (activeTab) activeTab.classList.add('active'); 
+        
         const tasDropdown = document.getElementById('tasmaniaDropdown'); 
         if (tasDropdown) {
-            if (loc === 'tasmania') tasDropdown.style.display = 'block'; 
+            if (loc === 'tasmania' || loc === 'penguin') tasDropdown.style.display = 'block'; 
             else tasDropdown.style.display = 'none'; 
         }
+        
+        // Update location name
+        if (locationNameText) {
+            if (loc === 'my-location' && userExactLocation) {
+                locationNameText.innerText = '📍 Your Location';
+            } else if (REGION_COORDS[loc]) {
+                locationNameText.innerText = REGION_COORDS[loc].name;
+            }
+        }
+        
         if (currentData) evaluateWithAgent();
+        
         // Refresh weather for new location
         if (getWeatherApiKey()) {
-            fetchRealWeather(loc).then(weather => {
+            let weatherLoc = loc;
+            if (loc === 'my-location' && userExactLocation) {
+                weatherLoc = 'my-location';
+            }
+            fetchRealWeather(weatherLoc).then(weather => {
                 if (weather && weather.valid) {
                     currentWeatherData = weather;
                     if (currentData) evaluateWithAgent();
+                    // Update location name with real location from API
+                    if (locationNameText && weather.location) {
+                        locationNameText.innerText = `${weather.location}${loc === 'my-location' ? ' 📍' : ''}`;
+                    }
                 }
             });
         }
@@ -994,20 +1098,61 @@
 
     function getLocation() { 
         if (navigator.geolocation) { 
+            showAlert('info', '📍 Getting your location...');
             navigator.geolocation.getCurrentPosition(pos => { 
-                const userLat = pos.coords.latitude; 
-                let closest = 'victoria'; 
-                if (userLat < -40) closest = 'tasmania'; 
-                else if (userLat < -35) closest = 'victoria'; 
-                else if (userLat < -32) closest = 'south-aus'; 
-                else closest = 'nsw'; 
-                selectLocation(closest); 
+                const userLat = pos.coords.latitude;
+                const userLon = pos.coords.longitude;
+                
+                // Store exact coordinates for weather
+                userExactLocation = { lat: userLat, lon: userLon };
+                
+                // Determine closest region for bonus mapping
+                let closest = 'tasmania';
+                if (userLat < -40) closest = 'tasmania';
+                else if (userLat < -35) closest = 'victoria';
+                else if (userLat < -32) closest = 'south-aus';
+                else closest = 'nsw';
+                
+                // Show the My Location tab
+                if (myLocationTab) {
+                    myLocationTab.style.display = 'inline-block';
+                    myLocationTab.textContent = `📍 ${userLat.toFixed(2)}, ${userLon.toFixed(2)}`;
+                }
+                
+                // Select My Location
+                selectLocation('my-location');
+                
+                // Update location note
                 const locationNote = document.getElementById('locationNote');
-                if (locationNote) locationNote.innerText = `📍 Set to ${closest}`; 
-                showAlert('success', `Location set to ${closest}`);
-            }, () => { showAlert('warning', 'Location permission denied'); }); 
+                if (locationNote) {
+                    const latStr = userLat.toFixed(4);
+                    const lonStr = userLon.toFixed(4);
+                    locationNote.innerText = `📍 GPS: ${latStr}, ${lonStr} (using exact weather for this location)`;
+                }
+                
+                // Fetch weather with exact coordinates
+                if (getWeatherApiKey()) {
+                    fetchRealWeather('my-location').then(weather => {
+                        if (weather && weather.valid) {
+                            currentWeatherData = weather;
+                            if (currentData) evaluateWithAgent();
+                            showAlert('success', `📍 Weather set to your exact location: ${weather.location}`);
+                            if (locationNameText) {
+                                locationNameText.innerText = `${weather.location} 📍`;
+                            }
+                        } else {
+                            showAlert('warning', 'Could not fetch weather for your exact location - using estimated data');
+                        }
+                    });
+                }
+                
+                showAlert('success', `📍 Location set! Using exact coordinates for weather.`);
+            }, (err) => { 
+                console.warn('Geolocation error:', err);
+                showAlert('warning', 'Location permission denied - using region defaults'); 
+            }, { enableHighAccuracy: true, timeout: 10000 }); 
         } else {
-            showAlert('warning', 'Geolocation not supported');
+            showAlert('warning', 'Geolocation not supported on this device');
         }
     }
 
@@ -1028,8 +1173,10 @@
         if (!alertDiv) return;
         alertDiv.innerHTML = msg;
         alertDiv.style.display = 'block';
-        alertDiv.style.background = type === 'success' ? 'rgba(0,255,170,0.15)' : (type === 'warning' ? 'rgba(255,140,66,0.2)' : 'rgba(255,50,50,0.15)');
-        alertDiv.style.border = '1px solid var(--bom-orange)';
+        alertDiv.style.background = type === 'success' ? 'rgba(0,255,170,0.15)' : 
+                                   (type === 'warning' ? 'rgba(255,140,66,0.2)' : 
+                                   (type === 'info' ? 'rgba(79,195,247,0.15)' : 'rgba(255,50,50,0.15)'));
+        alertDiv.style.border = type === 'info' ? '1px solid #4fc3f7' : '1px solid var(--bom-orange)';
         setTimeout(() => { alertDiv.style.display = 'none'; }, 3500);
     }
 
@@ -1212,7 +1359,7 @@
     }
 
     async function init() {
-        console.log('Initializing Aurora Tracker v2.3 with WeatherAPI.com support...');
+        console.log('Initializing Aurora Tracker v2.4 with Penguin, TAS and GPS support...');
         
         initDOMElements();
         
@@ -1271,7 +1418,9 @@
         
         registerServiceWorker();
         
-        console.log('Aurora Tracker v2.3 initialized successfully');
+        console.log('Aurora Tracker v2.4 initialized successfully');
+        console.log('📍 Penguin, TAS coordinates: -41.1234, 146.0732');
+        console.log('📍 GPS support enabled - click "My Location" for exact weather');
     }
 
     if (document.readyState === 'loading') {
