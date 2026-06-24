@@ -115,6 +115,7 @@
         .forecast-accuracy { font-size: 0.65rem; color: #00ffaa; text-align: center; margin-top: 4px; }
         .bom-forecast-badge { display: inline-block; background: rgba(255,140,66,0.2); padding: 2px 10px; border-radius: 12px; font-size: 0.6rem; color: #ff8c42; margin-left: 6px; }
         .cors-notice { font-size: 0.6rem; color: #ffaa66; text-align: center; margin-top: 2px; display: none; }
+        .api-fallback-notice { font-size: 0.6rem; color: #ff8866; text-align: center; margin-top: 2px; display: none; }
     </style>
 </head>
 <body class="simple-view">
@@ -162,19 +163,17 @@
         <div class="tab" data-loc="west-aus">WA</div>
         <div class="tab" data-loc="nsw">NSW</div>
         <div class="tab my-location-tab" data-loc="my-location" id="myLocationTab" style="display:none;">📍 My Location</div>
-    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast <span class="bom-forecast-badge" id="forecastBadge">📊 BOM Real</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast source: <span id="forecastSourceLabel">BOM Space Weather</span></div><div class="cors-notice" id="corsNotice">⚠️ Using CORS proxy for BOM API</div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span id="forecastSourceStatus">📊 Forecast: <span id="forecastStatusText">--</span></span></div></div></div></div></div>
-<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.6 • BOM + NOAA + WeatherAPI.com + Real Forecasts</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
+    </div><div class="data-grid"><div class="data-item"><div class="data-label">Chance tonight</div><div class="data-value" id="locationChance">--%</div></div><div class="data-item"><div class="data-label">Best time</div><div class="data-value" id="bestTimeLocal">10pm–2am</div></div></div><div class="tasmania-dropdown" id="tasmaniaDropdown"><div class="tasmania-dropdown-header" id="tasmaniaDropdownHeader"><span>📍 Tasmania Advantage ▼</span><span>✨</span></div><div class="tasmania-advantage-content" id="tasmaniaAdvantageContent"><div><strong>⚡ Prime location</strong><br><span id="advantageText">Closest to auroral oval</span></div><div><strong>📈 Visibility boost</strong><br><span id="boostText">+30% vs mainland</span></div><div style="background:rgba(0,255,170,0.1); padding:6px; border-radius:10px;"><strong>💡 Tip:</strong> <span id="tasmaniaTip">Check southern horizon after 10pm</span></div></div></div><div class="region-bonus" id="regionBonus">📍 Tasmania: +15 score bonus</div></div><div class="card detailed-card"><div class="card-header"><div class="card-title">📈 3‑Day Forecast <span class="bom-forecast-badge" id="forecastBadge">📊 BOM Real</span></div></div><div style="display:flex; gap:8px; margin-bottom:10px;"><button class="interval-btn active" data-interval="3h" id="interval3hBtn">3-Hour</button><button class="interval-btn" data-interval="daily" id="intervalDailyBtn">Daily</button></div><div class="forecast-chart-container" id="forecastChartContainer"></div><div class="data-grid"><div class="data-item"><div class="data-label">Today peak</div><div id="peakToday" class="data-value">--</div></div><div class="data-item"><div class="data-label">Tomorrow</div><div id="peakTomorrow" class="data-value">--</div></div></div><div class="forecast-accuracy" id="forecastAccuracy">📡 Forecast source: <span id="forecastSourceLabel">BOM Space Weather</span></div><div class="cors-notice" id="corsNotice">⚠️ Using CORS proxy for BOM API</div><div class="api-fallback-notice" id="apiFallbackNotice">⚠️ BOM API unavailable - using NOAA data</div></div></div><div class="sidebar detailed-card"><div class="card"><div class="card-header"><div class="card-title">⚠️ Aurora Alerts <span style="font-size:0.7rem;">(AI generated)</span></div></div><div id="alertsList" style="font-size:0.75rem;">No active alerts</div></div><div class="card"><div class="card-header"><div class="card-title">🤖 Agent Recommendations</div></div><div id="agentRecommendations" style="font-size:0.75rem;">Waiting for data...</div></div><div class="card"><div class="card-header"><div class="card-title">💡 Viewing Tips</div></div><div style="font-size:0.7rem;">📍 Dark sky, south view<br>🌙 New moon = best<br>⏰ 10pm–2am local<br>📷 Tripod & long exposure</div></div><div class="card"><div class="card-header"><div class="card-title">📡 Data Sources</div></div><div style="font-size:0.7rem;"><span id="activeSourceLabel">BOM</span> / NOAA fallback<br><span id="sourceLatency">--</span> ms latency<br><span id="agentStatus">🤖 Agent: Active</span><br><span id="weatherSourceStatus">🌤️ Weather: --</span><br><span id="forecastSourceStatus">📊 Forecast: <span id="forecastStatusText">--</span></span></div></div></div></div></div>
+<div class="footer"><div>Aurora Tracker • AI-Powered Monitoring Agent</div><div style="margin-top: 8px;">Jay Rowley © 2025 • PWA v2.7 • BOM + NOAA + WeatherAPI.com + Real Forecasts</div><div style="margin-top: 6px; font-size: 0.7rem; opacity: 0.7;"><span id="locationNote">📍 Select region or use My Location for exact weather</span></div></div>
 
 <script>
 (function() {
     'use strict';
 
     // ==================== CORS PROXY ====================
-    // Using a free CORS proxy service to bypass BOM API CORS restrictions
-    // If this proxy stops working, you can replace it with:
-    // - 'https://corsproxy.io/?' (another free option)
-    // - Your own Netlify function (recommended for production)
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    // Using a CORS proxy that supports POST requests with JSON bodies
+    // corsproxy.io works with POST requests
+    const CORS_PROXY = 'https://corsproxy.io/?';
     
     // ==================== API KEY MANAGEMENT ====================
     function getWeatherApiKey() {
@@ -260,7 +259,6 @@
             score -= (moonBrightness * 22);
             score -= (cloudPercent / 100) * 28;
 
-            // Location bonus - Tasmania gets the biggest boost
             if (location === 'tasmania' || location === 'penguin' || location === 'my-location') {
                 let isTasmania = true;
                 if (location === 'my-location' && userExactLocation) {
@@ -451,7 +449,7 @@
         constructor(maxAgeMs = 24 * 60 * 60 * 1000) { 
             this.maxAge = maxAgeMs; 
             this.cacheKey = 'aurora_data_cache_v3'; 
-            this.version = '2.6.0'; 
+            this.version = '2.7.0'; 
             this.checkVersion(); 
         }
         
@@ -530,7 +528,7 @@
         }
     }
 
-    // ==================== BOM API (via CORS Proxy) ====================
+    // ==================== BOM API (via CORS Proxy - POST support) ====================
     async function fetchBomKIndex(apiKey) {
         const url = 'https://sws-data.sws.bom.gov.au/api/v1/get-k-index';
         const proxiedUrl = CORS_PROXY + encodeURIComponent(url);
@@ -538,12 +536,23 @@
         try {
             const response = await fetch(proxiedUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ api_key: apiKey, format: 'json' })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    api_key: apiKey, 
+                    format: 'json' 
+                })
             });
             
-            if (!response.ok) return null;
-            return await response.json();
+            if (!response.ok) {
+                console.warn('BOM K-index proxy response:', response.status);
+                return null;
+            }
+            const data = await response.json();
+            console.log('✅ BOM K-index via proxy:', data);
+            return data;
         } catch (e) {
             console.warn('BOM K-index via proxy failed:', e.message);
             return null;
@@ -557,12 +566,23 @@
         try {
             const response = await fetch(proxiedUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ api_key: apiKey, format: 'json' })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    api_key: apiKey, 
+                    format: 'json' 
+                })
             });
             
-            if (!response.ok) return null;
-            return await response.json();
+            if (!response.ok) {
+                console.warn('BOM forecast proxy response:', response.status);
+                return null;
+            }
+            const data = await response.json();
+            console.log('✅ BOM Forecast via proxy:', data);
+            return data;
         } catch (e) {
             console.warn('BOM forecast via proxy failed:', e.message);
             return null;
@@ -639,6 +659,7 @@
             let speed = 400;
             let sourceLabel = 'NOAA';
             let usedProxy = false;
+            let bomAvailable = false;
             
             // Try BOM API first if key is available (via CORS proxy)
             if (source === 'bom' && bomApiKey) {
@@ -654,6 +675,7 @@
                         }
                         sourceLabel = 'BOM (via CORS proxy)';
                         usedProxy = true;
+                        bomAvailable = true;
                         console.log('✅ BOM K-index via proxy:', kp);
                     } else {
                         console.warn('BOM API returned no data, falling back to NOAA');
@@ -664,7 +686,7 @@
             }
             
             // Fallback to NOAA if BOM didn't provide data
-            if (sourceLabel === 'NOAA' || !bomApiKey) {
+            if (!bomAvailable) {
                 try {
                     const kpRes = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json?t=' + Date.now(), { signal: controller.signal });
                     if (kpRes.ok) { 
@@ -702,6 +724,16 @@
                 
                 if (source === 'bom') sourceLabel = 'BOM (via NOAA fallback)';
                 else sourceLabel = 'NOAA (Space Weather Prediction Center)';
+                
+                // Show fallback notice
+                const fallbackNotice = document.getElementById('apiFallbackNotice');
+                if (fallbackNotice) {
+                    fallbackNotice.style.display = 'block';
+                    fallbackNotice.innerText = '⚠️ BOM API unavailable - using NOAA data';
+                }
+            } else {
+                const fallbackNotice = document.getElementById('apiFallbackNotice');
+                if (fallbackNotice) fallbackNotice.style.display = 'none';
             }
             
             // Show CORS notice if proxy was used
@@ -731,7 +763,8 @@
                 forecast: { allForecasts, peakToday, peakTomorrow }, 
                 source: sourceLabel, 
                 latency: Date.now() - start,
-                usedProxy: usedProxy
+                usedProxy: usedProxy,
+                bomAvailable: bomAvailable
             };
         } catch (e) { 
             console.error(`${source} fetch error:`, e);
@@ -1015,7 +1048,8 @@
             
             const forecastMsg = forecastSource === 'bom' ? ' with BOM real forecast' : ' (forecast estimated)';
             const proxyMsg = usedProxy ? ' (via CORS proxy)' : '';
-            showAlert('success', `${data.source} data updated in ${data.latency}ms${forecastMsg}${proxyMsg}`);
+            const fallbackMsg = data.bomAvailable ? '' : ' (NOAA fallback)';
+            showAlert('success', `${data.source} data updated in ${data.latency}ms${forecastMsg}${proxyMsg}${fallbackMsg}`);
             
         } catch (err) {
             console.error('Fetch error:', err);
@@ -1522,7 +1556,7 @@
     }
 
     async function init() {
-        console.log('🚀 Initializing Aurora Tracker v2.6 with CORS Proxy for BOM...');
+        console.log('🚀 Initializing Aurora Tracker v2.7 with CORS Proxy (POST support)...');
         
         initDOMElements();
         
@@ -1580,7 +1614,7 @@
         
         registerServiceWorker();
         
-        console.log('✅ Aurora Tracker v2.6 initialized successfully');
+        console.log('✅ Aurora Tracker v2.7 initialized successfully');
         console.log('📊 Forecast source:', forecastSource === 'bom' ? 'BOM REAL (via CORS proxy)' : 'Estimated (fallback)');
         console.log('📍 Penguin, TAS coordinates: -41.1234, 146.0732');
         console.log('📍 GPS support enabled - click "My Location" for exact weather');
